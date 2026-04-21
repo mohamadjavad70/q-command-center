@@ -1,4 +1,5 @@
 {
+  "name": "q-command-center",
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
