@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000510"/>
+      <stop offset="100%" stop-color="#000002"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00f2ff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00f2ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="f1">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#00f2ff" stroke-width="1.5" stroke-opacity="0.25"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#00f2ff" stroke-width="1" stroke-opacity="0.15"/>
+
+  <!-- Neural particles (simplified 36 dots on sphere projection) -->
+  <g fill="#00f2ff" opacity="0.6">
+    <circle cx="256" cy="56"  r="2.5"/>
+    <circle cx="316" cy="72"  r="2"/>
+    <circle cx="370" cy="108" r="2.5"/>
+    <circle cx="404" cy="162" r="2"/>
+    <circle cx="420" cy="224" r="2.5"/>
+    <circle cx="410" cy="290" r="2"/>
+    <circle cx="382" cy="348" r="2.5"/>
+    <circle cx="338" cy="394" r="2"/>
+    <circle cx="280" cy="420" r="2.5"/>
+    <circle cx="216" cy="418" r="2"/>
+    <circle cx="158" cy="394" r="2.5"/>
+    <circle cx="112" cy="350" r="2"/>
+    <circle cx="84"  cy="292" r="2.5"/>
+    <circle cx="76"  cy="228" r="2"/>
+    <circle cx="90"  cy="164" r="2.5"/>
+    <circle cx="124" cy="110" r="2"/>
+    <circle cx="176" cy="72"  r="2.5"/>
+    <circle cx="196" cy="56"  r="2"/>
+    <circle cx="340" cy="130" r="2"/>
+    <circle cx="380" cy="200" r="2.5"/>
+    <circle cx="370" cy="270" r="2"/>
+    <circle cx="330" cy="330" r="2.5"/>
+    <circle cx="270" cy="360" r="2"/>
+    <circle cx="204" cy="348" r="2.5"/>
+    <circle cx="158" cy="300" r="2"/>
+    <circle cx="148" cy="234" r="2.5"/>
+    <circle cx="168" cy="172" r="2"/>
+    <circle cx="210" cy="132" r="2.5"/>
+    <circle cx="300" cy="100" r="2"/>
+    <circle cx="340" cy="200" r="2"/>
+    <circle cx="300" cy="310" r="2.5"/>
+    <circle cx="214" cy="298" r="2"/>
+    <circle cx="176" cy="210" r="2.5"/>
+    <circle cx="210" cy="180" r="2"/>
+    <circle cx="256" cy="156" r="2.5"/>
+    <circle cx="330" cy="256" r="2"/>
+  </g>
+
+  <!-- Neural connection lines -->
+  <g stroke="#00f2ff" stroke-width="0.8" opacity="0.18">
+    <line x1="256" y1="56"  x2="316" y2="72"/>
+    <line x1="316" y1="72"  x2="370" y2="108"/>
+    <line x1="370" y1="108" x2="404" y2="162"/>
+    <line x1="404" y1="162" x2="420" y2="224"/>
+    <line x1="420" y1="224" x2="410" y2="290"/>
+    <line x1="410" y1="290" x2="382" y2="348"/>
+    <line x1="382" y1="348" x2="338" y2="394"/>
+    <line x1="338" y1="394" x2="280" y2="420"/>
+    <line x1="280" y1="420" x2="216" y2="418"/>
+    <line x1="216" y1="418" x2="158" y2="394"/>
+    <line x1="158" y1="394" x2="112" y2="350"/>
+    <line x1="112" y1="350" x2="84"  y2="292"/>
+    <line x1="84"  y1="292" x2="76"  y2="228"/>
+    <line x1="76"  y1="228" x2="90"  y2="164"/>
+    <line x1="90"  y1="164" x2="124" y2="110"/>
+    <line x1="124" y1="110" x2="176" y2="72"/>
+    <line x1="176" y1="72"  x2="256" y2="56"/>
+    <line x1="256" y1="156" x2="300" y2="100"/>
+    <line x1="256" y1="156" x2="210" y2="132"/>
+    <line x1="256" y1="156" x2="330" y2="256"/>
+    <line x1="256" y1="156" x2="176" y2="210"/>
+  </g>
+
+  <!-- Core glow -->
+  <circle cx="256" cy="256" r="60" fill="url(#glow)"/>
+
+  <!-- Core sphere -->
+  <circle cx="256" cy="256" r="40" fill="#00f2ff" opacity="0.15"/>
+  <circle cx="256" cy="256" r="32" fill="#001122"/>
+  <circle cx="256" cy="256" r="28" fill="none" stroke="#00f2ff" stroke-width="2" opacity="0.8"/>
+
+  <!-- Q Letter — centered -->
+  <text x="256" y="278"
+        font-family="'Segoe UI', Arial, sans-serif"
+        font-size="52"
+        font-weight="100"
+        letter-spacing="6"
+        text-anchor="middle"
+        fill="#00f2ff"
+        opacity="0.95">Q</text>
+
+  <!-- Swiss flag dot (small, bottom right) -->
+  <rect x="430" y="430" width="50" height="50" rx="8" fill="#FF0000" opacity="0.85"/>
+  <rect x="452" y="436" width="6"  height="38" rx="2" fill="white"/>
+  <rect x="436" y="452" width="38" height="6"  rx="2" fill="white"/>
+</svg>

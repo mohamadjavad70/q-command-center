@@ -1,0 +1,47 @@
+{
+  "name": "Q · دستیار هوشمند سوئیس",
+  "short_name": "Q",
+  "description": "Q Voice OS — Swiss AI Operating System | دستیار صوتی هوشمند سوئیسی",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000010",
+  "theme_color": "#00f2ff",
+  "lang": "fa",
+  "dir": "rtl",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Q Neural Being",
+      "short_name": "Q Being",
+      "description": "کره عصبی زنده",
+      "url": "/q-being.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Q Voice OS",
+      "short_name": "QOS",
+      "description": "سیستم عامل صوتی",
+      "url": "/qos",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

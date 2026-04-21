@@ -1,26 +1,47 @@
 <!doctype html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project">
-    <meta name="author" content="Lovable" />
+    <title>Q · دستیار هوشمند سوئیس</title>
+    <meta name="description" content="Q Voice OS — دستیار صوتی هوشمند سوئیسی — Swiss AI Operating System">
+    <meta name="author" content="Q Network · qmetaram.ch" />
+    <meta name="application-name" content="Q Network">
+    <meta name="theme-color" content="#00f2ff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Q">
 
-    <!-- TODO: Update og:title to match your application name -->
-    
-    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Apple Touch Icons (fallback) -->
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+
+    <!-- OG / Twitter (Swiss deployment) -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b5de6a65-54b6-4322-8f3f-d39440e766f9/id-preview-8a0ac5ae--29370978-e3b2-49c3-b287-175b64d9676c.lovable.app-1772140948913.png">
-
+    <meta property="og:title" content="Q · دستیار هوشمند صوتی سوئیس" />
+    <meta property="og:description" content="Q Voice OS — هوش مصنوعی زنده با ۳۶۹ ذره عصبی" />
+    <meta property="og:url" content="https://qmetaram.ch" />
+    <meta property="og:image" content="https://qmetaram.ch/icons/icon-512.png">
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b5de6a65-54b6-4322-8f3f-d39440e766f9/id-preview-8a0ac5ae--29370978-e3b2-49c3-b287-175b64d9676c.lovable.app-1772140948913.png">
-    <meta property="og:title" content="Lovable App">
-  <meta name="twitter:title" content="Lovable App">
-  <meta property="og:description" content="Lovable Generated Project">
-  <meta name="twitter:description" content="Lovable Generated Project">
+    <meta name="twitter:title" content="Q · Swiss AI Voice OS" />
+    <meta name="twitter:description" content="Q Neural Being — Living AI for Switzerland 🇨🇭" />
+    <meta name="twitter:image" content="https://qmetaram.ch/icons/icon-512.png">
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => console.log('[Q] Service Worker registered:', reg.scope))
+            .catch(err => console.warn('[Q] Service Worker failed:', err));
+        });
+      }
+    </script>
 </head>
 
   <body>
