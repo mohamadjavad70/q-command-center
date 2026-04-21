@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q-Brain Global Neural Visualizer</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; }
+    body { background: #000509; font-family: 'Orbitron', sans-serif; color: #60a5fa; box-sizing: border-box; }
+
+    .app-wrapper { height: 100%; width: 100%; position: relative; overflow: hidden; }
+    canvas { display: block; cursor: grab; }
+    canvas:active { cursor: grabbing; }
+
+    .hud-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+
+    .glass-card {
+      background: rgba(0, 6, 18, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(59, 130, 246, 0.5);
+      box-shadow: 0 8px 32px rgba(34, 211, 238, 0.1), inset 0 1px 2px rgba(255,255,255,0.1);
+      pointer-events: auto;
+    }
+
+    .mono { font-family: 'Share Tech Mono', monospace; }
+
+    @keyframes scan-line {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+    .scan-effect::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 50%;
+      background: linear-gradient(transparent, rgba(59,130,246,0.03), transparent);
+      animation: scan-line 4s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes node-pulse {
+      0%, 100% { box-shadow: 0 0 4px rgba(59,130,246,0.3); }
+      50% { box-shadow: 0 0 12px rgba(59,130,246,0.7); }
+    }
+    .node-pulse { animation: node-pulse 2s ease-in-out infinite; }
+
+    @keyframes data-flicker {
+      0%, 90%, 100% { opacity: 1; }
+      92% { opacity: 0.3; }
+      94% { opacity: 0.8; }
+      96% { opacity: 0.2; }
+    }
+    .data-flicker { animation: data-flicker 5s ease-in-out infinite; }
+
+    .synapse-counter {
+      background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(0,242,255,0.05));
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="app-wrapper scan-effect" id="app">
+  <canvas id="globe-canvas"></canvas>
+  <div class="hud-layer p-4 md:p-6 flex flex-col justify-between">
+
+    <!-- Top Bar -->
+    <div class="flex justify-between items-start gap-3 flex-wrap">
+      <div class="glass-card px-5 py-4 rounded-2xl border-l-4 border-cyan-400">
+        <h1 class="text-xl md:text-2xl font-black text-white tracking-tight" style="font-family:'Orbitron',sans-serif;">
+          Q-BRAIN <span class="text-cyan-400">v4.0</span>
+        </h1>
+        <p class="text-[9px] uppercase tracking-[0.25em] text-blue-400/70 mt-1 mono">Planetary Neural Synchronizer</p>
+      </div>
+
+      <div class="glass-card px-4 py-3 rounded-xl max-w-[320px] w-full">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="text-[9px] font-bold text-emerald-300 uppercase tracking-wider mono" id="connection-status">DEMO MODE</span>
+        </div>
+        <div class="text-[10px] text-slate-400 mono space-y-1 data-flicker">
+          <div class="flex justify-between"><span>SYNAPTIC LOAD</span><span class="text-cyan-300" id="stat-load">89.4%</span></div>
+          <div class="flex justify-between"><span>NEURAL FREQ</span><span class="text-cyan-300" id="stat-freq">432 Hz</span></div>
+          <div class="flex justify-between"><span>CONSCIOUSNESS</span><span class="text-cyan-300">ACTIVE</span></div>
+          <div class="flex justify-between"><span>COHERENCE</span><span class="text-cyan-300" id="stat-coherence">97.2%</span></div>
+          <div class="flex justify-between mt-2 pt-2 border-t border-blue-500/20">
+            <span>ACTIVE PACKETS</span><span class="text-emerald-300" id="stat-packets">0</span>
+          </div>
+          <div class="flex justify-between" id="best-path-row" style="display:none!important">
+            <span>BEST PATH</span><span class="text-emerald-300" id="best-path-value">—</span>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-3 flex-wrap">
+          <button id="btn-heatmap" class="text-[9px] px-2 py-1 rounded border border-cyan-400/50 text-cyan-300 hover:bg-cyan-400/10 transition-colors mono">HEATMAP</button>
+          <button id="btn-spray" class="text-[9px] px-2 py-1 rounded border border-blue-400/50 text-blue-300 hover:bg-blue-400/10 transition-colors mono">SPRAY PACKETS</button>
+          <button id="btn-predict" class="text-[9px] px-2 py-1 rounded border border-emerald-400/50 text-emerald-300 hover:bg-emerald-400/10 transition-colors mono">PREDICT MODE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="flex justify-between items-end gap-3 flex-wrap-reverse">
+      <div class="glass-card p-4 rounded-xl max-w-[320px] w-full">
+        <h3 class="text-[9px] uppercase tracking-[0.2em] text-blue-400/60 mb-3 mono">Neural Node Centers</h3>
+        <div id="node-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+        <div id="selected-node-panel" class="hidden mt-4 pt-4 border-t border-blue-500/30">
+          <div class="text-[10px] font-bold text-cyan-300 mb-2" id="selected-node-name"></div>
+          <div class="space-y-1 text-[9px] text-slate-400 mono">
+            <div class="flex justify-between"><span>SIGNAL STRENGTH</span><span id="selected-signal" class="text-cyan-300">--</span></div>
+            <div class="flex justify-between"><span>BANDWIDTH</span><span id="selected-bandwidth" class="text-cyan-300">--</span></div>
+            <div class="flex justify-between"><span>LATENCY</span><span id="selected-latency" class="text-cyan-300">--</span></div>
+            <div class="flex justify-between"><span>LAST SYNC</span><span id="selected-sync" class="text-cyan-300">--</span></div>
+          </div>
+        </div>
+        <!-- Legend برای predict mode -->
+        <div id="predict-legend" class="hidden mt-3 pt-3 border-t border-blue-500/20">
+          <div class="text-[8px] uppercase tracking-wider text-blue-400/60 mb-2 mono">PREDICT SCORE LEGEND</div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2"><span class="w-4 h-0.5 bg-emerald-400 inline-block rounded"></span><span class="text-[8px] text-slate-400 mono">HIGH (≥70%) — Optimal</span></div>
+            <div class="flex items-center gap-2"><span class="w-4 h-0.5 bg-yellow-400 inline-block rounded"></span><span class="text-[8px] text-slate-400 mono">MID (40-70%) — Acceptable</span></div>
+            <div class="flex items-center gap-2"><span class="w-4 h-0.5 bg-red-400 inline-block rounded"></span><span class="text-[8px] text-slate-400 mono">LOW (&lt;40%) — Degraded</span></div>
+            <div class="flex items-center gap-2"><span class="w-4 h-0.5 bg-orange-400 inline-block rounded"></span><span class="text-[8px] text-slate-400 mono">TRENDING BAD (&gt;50ms rise)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="synapse-counter p-4 rounded-xl text-left">
+        <div class="text-3xl md:text-4xl font-black text-white tracking-tight mono" id="synapse-count">0</div>
+        <div class="text-[8px] uppercase tracking-[0.2em] text-blue-400/50 mt-1">Active Global Synapses</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── پیکربندی ──
+const QNET_SERVER = 'http://localhost:9900';
+
+const nodes = [
+  { name: "Tehran (Nucleus)",     lat: 35.6,  lon:  51.3,  activity: 92, color: "#22d3ee" },
+  { name: "New York (Cortex)",    lat: 40.7,  lon: -74.0,  activity: 88, color: "#3b82f6" },
+  { name: "Tokyo (Thalamus)",     lat: 35.6,  lon: 139.6,  activity: 95, color: "#60a5fa" },
+  { name: "London (Lobe)",        lat: 51.5,  lon:  -0.1,  activity: 84, color: "#818cf8" },
+  { name: "Sydney (Cerebellum)",  lat: -33.8, lon: 151.2,  activity: 79, color: "#a78bfa" },
+  { name: "São Paulo (Stem)",     lat: -23.5, lon: -46.6,  activity: 81, color: "#06b6d4" },
+  { name: "Dubai (Hippocampus)",  lat: 25.2,  lon:  55.3,  activity: 86, color: "#14b8a6" },
+  { name: "Singapore (Synapse)",  lat:  1.3,  lon: 103.8,  activity: 93, color: "#10b981" },
+  { name: "Moscow (Cortical)",    lat: 55.7,  lon:  37.6,  activity: 77, color: "#8b5cf6" },
+  { name: "Mumbai (Neural Nexus)",lat: 19.1,  lon:  72.8,  activity: 89, color: "#f59e0b" },
+];
+
+// Globe rendering
+const canvas = document.getElementById('globe-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy, R;
+let rotX = 0.3, rotY = 0, autoRotate = true;
+let dragStart = null, dragRotStart = null;
+
+// Simulation state
+let activePackets = [];
+let heatmapEnabled = false;
+let predictMode = false;
+let nodeHeatmap = {};
+
+// Predictive routing data (from SSE edge_predict)
+let edgePredictions = new Map(); // key: "i-j", value: { score, trend, stability, latencyEMA }
+let sseClient = null;
+
+// ── Build node list UI ──
+const nodeListEl = document.getElementById('node-list');
+nodes.forEach((n, idx) => {
+  const div = document.createElement('div');
+  div.className = 'flex items-center gap-2 node-pulse rounded-lg px-2 py-1.5 cursor-pointer hover:bg-blue-500/10 transition-colors';
+  div.innerHTML = `
+    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${n.color};box-shadow:0 0 6px ${n.color}"></span>
+    <span class="text-[10px] text-slate-300 mono flex-1">${n.name}</span>
+    <span class="text-[10px] font-bold mono" style="color:${n.color}">${n.activity}%</span>
+  `;
+  div.addEventListener('click', () => selectNode(idx));
+  nodeListEl.appendChild(div);
+});
+
+function selectNode(index) {
+  const node = nodes[index];
+  const seed = index * 7 + node.activity;
+  document.getElementById('selected-node-name').textContent = node.name;
+  document.getElementById('selected-signal').textContent = node.activity + '%';
+  document.getElementById('selected-bandwidth').textContent = (50 + ((seed * 73) % 100)).toFixed(1) + ' Mbps';
+  document.getElementById('selected-latency').textContent = ((seed * 41) % 50) + ' ms';
+  document.getElementById('selected-sync').textContent = ((seed * 19) % 60) + 's ago';
+  document.getElementById('selected-node-panel').classList.remove('hidden');
+  document.querySelectorAll('#node-list > div').forEach((el, i) => {
+    el.classList.toggle('ring-2', i === index);
+    el.classList.toggle('ring-cyan-400', i === index);
+  });
+}
+
+// ── Canvas resize ──
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx = W / 2; cy = H / 2;
+  R = Math.min(W, H) * 0.28;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── 3D projection ──
+function project(lat, lon) {
+  const phi   = (90 - lat) * Math.PI / 180;
+  const theta = lon * Math.PI / 180 + rotY;
+  const x = Math.sin(phi) * Math.cos(theta);
+  const y = Math.cos(phi);
+  const z = Math.sin(phi) * Math.sin(theta);
+  const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+  const y2 = y * cosX - z * sinX;
+  const z2 = y * sinX + z * cosX;
+  return { x: cx + x * R, y: cy - y2 * R, z2, front: z2 < 0 };
+}
+
+// ── Globe drawing ──
+function drawGlobe(t) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Ambient glow
+  const bg = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 2);
+  bg.addColorStop(0, 'rgba(34,211,238,0.07)');
+  bg.addColorStop(0.5, 'rgba(59,130,246,0.03)');
+  bg.addColorStop(1, 'transparent');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  // Ocean
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = '#020d1a'; ctx.fill();
+
+  // Continent outlines (simplified polygons)
+  const continents = [
+    [[70,-140],[65,-85],[50,-60],[30,-80],[16,-87],[18,-80],[30,-90],[42,-82],[47,-70],[52,-56],[65,-72],[70,-90],[72,-100],[70,-140]],
+    [[-5,-35],[-23,-45],[-33,-53],[-42,-65],[-54,-62],[-35,-50],[-10,-37],[0,-48],[5,-52],[10,-62],[-5,-35]],
+    [[71,28],[55,14],[52,-10],[50,-5],[44,8],[40,20],[38,26],[50,35],[56,40],[60,38],[66,25],[71,28]],
+    [[37,-5],[36,5],[32,32],[20,42],[0,42],[-22,14],[-34,25],[-35,20],[-12,14],[8,-5],[16,-15],[32,-5],[37,-5]],
+    [[28,66],[22,68],[10,76],[12,80],[22,88],[30,78],[28,66]],
+    [[72,42],[55,60],[50,58],[42,52],[35,36],[26,57],[20,58],[30,50],[40,52],[55,62],[68,72],[75,82],[80,90],[72,95],[55,85],[42,80],[30,70],[24,65],[18,45],[24,38],[32,35],[40,48],[72,42]],
+    [[72,95],[55,110],[42,128],[36,126],[22,113],[10,104],[0,104],[-8,115],[0,130],[10,140],[35,138],[42,122],[55,130],[65,120],[70,110],[76,95],[72,95]],
+    [[-15,128],[-14,140],[-26,153],[-34,151],[-38,140],[-32,128],[-16,123],[-15,128]],
+  ];
+
+  continents.forEach(cont => {
+    ctx.beginPath();
+    cont.forEach(([la, lo], i) => {
+      const p = project(la, lo);
+      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = '#0d4a35';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(20,184,166,0.2)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  });
+
+  // Globe outline
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(59,130,246,0.45)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Atmosphere
+  const atm = ctx.createRadialGradient(cx, cy, R * 0.94, cx, cy, R * 1.38);
+  atm.addColorStop(0, 'rgba(34,211,238,0.12)');
+  atm.addColorStop(1, 'transparent');
+  ctx.fillStyle = atm;
+  ctx.beginPath(); ctx.arc(cx, cy, R * 1.38, 0, Math.PI * 2); ctx.fill();
+
+  // Brain waves
+  for (let i = 1; i <= 3; i++) {
+    const wR = R + Math.sin(t * 0.0008 + i * 1.4) * 8;
+    ctx.beginPath(); ctx.arc(cx, cy, wR, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(34,211,238,${0.14 - i * 0.03})`; ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  // Grid
+  for (let lat = -60; lat <= 60; lat += 30) {
+    ctx.beginPath();
+    for (let lo = -180; lo <= 180; lo += 5) {
+      const p = project(lat, lo);
+      lo === -180 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+    }
+    ctx.strokeStyle = 'rgba(59,130,246,0.05)'; ctx.lineWidth = 0.5; ctx.stroke();
+  }
+
+  // Neural connections
+  const pts = nodes.map(n => project(n.lat, n.lon));
+
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i + 1; j < pts.length; j++) {
+      const a = pts[i], b = pts[j];
+      if (!a.front && !b.front) continue;
+      const bothFront = a.front && b.front;
+      const alpha = bothFront ? 0.3 : 0.08;
+
+      // Get prediction data
+      const predKey = `${i}-${j}`;
+      const pred = edgePredictions.get(predKey);
+      const score = pred ? pred.score : 0.5;
+      const isTrending = pred ? pred.trend > 50 : false;
+
+      let edgeR, edgeG, edgeB;
+      if (predictMode && pred) {
+        if (isTrending) {
+          edgeR = 255; edgeG = 140; edgeB = 0;   // نارنجی: trending bad
+        } else if (score >= 0.7) {
+          edgeR = 50; edgeG = 200; edgeB = 120;   // سبز: خوب
+        } else if (score >= 0.4) {
+          edgeR = 200; edgeG = 180; edgeB = 50;   // زرد: متوسط
+        } else {
+          edgeR = 220; edgeG = 60; edgeB = 60;    // قرمز: ضعیف
+        }
+      } else {
+        edgeR = Math.round(255 * (1 - score));
+        edgeG = Math.round(211 * score);
+        edgeB = Math.round(238 * (0.4 + score * 0.6));
+      }
+
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 1) continue;
+      const bv = dist * 0.13;
+      const nx = -dy / dist * bv, ny = dx / dist * bv;
+
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.quadraticCurveTo(mx + nx, my + ny, b.x, b.y);
+      ctx.strokeStyle = `rgba(${edgeR},${edgeG},${edgeB},${alpha * (0.5 + score * 0.9)})`;
+      ctx.lineWidth = bothFront ? (0.5 + score * 2.5) : 0.4;
+      ctx.stroke();
+
+      // Traveling pulse
+      const pulse = (t * 0.00035 + i * 0.28 + j * 0.14) % 1;
+      const px = (1-pulse)**2 * a.x + 2*(1-pulse)*pulse*(mx+nx) + pulse**2 * b.x;
+      const py = (1-pulse)**2 * a.y + 2*(1-pulse)*pulse*(my+ny) + pulse**2 * b.y;
+      const pg = ctx.createRadialGradient(px, py, 0, px, py, 4);
+      pg.addColorStop(0, `rgba(34,211,238,${alpha * 2.5})`);
+      pg.addColorStop(1, 'transparent');
+      ctx.fillStyle = pg;
+      ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // Nodes
+  nodes.forEach((n, i) => {
+    const p = pts[i];
+    const fa = p.front ? 1 : 0.15;
+    const pr = 4 + Math.sin(t * 0.003 + i * 0.85) * 1.8;
+    const hex = n.color.slice(1);
+    const nr = parseInt(hex.slice(0,2),16), ng = parseInt(hex.slice(2,4),16), nb = parseInt(hex.slice(4,6),16);
+
+    let nc = n.color;
+    if (heatmapEnabled && nodeHeatmap[i]) {
+      const heat = nodeHeatmap[i];
+      nc = heat > 0.5 ? '#ff4444' : heat > 0.25 ? '#ff8844' : '#44ff88';
+    }
+
+    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, pr * 5);
+    glow.addColorStop(0, `rgba(${nr},${ng},${nb},${fa * 0.4})`);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(p.x, p.y, pr * 5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.globalAlpha = fa;
+    ctx.beginPath(); ctx.arc(p.x, p.y, pr, 0, Math.PI * 2);
+    ctx.fillStyle = nc; ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // Active packets
+  activePackets.forEach(pkt => {
+    const a = pts[pkt.from], b = pts[pkt.to];
+    if (!a || !b) return;
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const dist = Math.sqrt(dx*dx + dy*dy); if (dist < 1) return;
+    const bv = dist * 0.15;
+    const nx = -dy/dist * bv, ny = dx/dist * bv;
+    const pp = pkt.progress;
+    const pkx = (1-pp)**2*a.x + 2*(1-pp)*pp*(mx+nx) + pp**2*b.x;
+    const pky = (1-pp)**2*a.y + 2*(1-pp)*pp*(my+ny) + pp**2*b.y;
+
+    const pg = ctx.createRadialGradient(pkx, pky, 0, pkx, pky, 9);
+    pg.addColorStop(0, 'rgba(34,211,238,0.9)');
+    pg.addColorStop(1, 'transparent');
+    ctx.fillStyle = pg;
+    ctx.beginPath(); ctx.arc(pkx, pky, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(pkx, pky, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+  });
+
+  // Floating particles
+  for (let i = 0; i < 50; i++) {
+    const angle = (t * 0.0002 + i * 1.37) % (Math.PI * 2);
+    const d2 = R * (0.6 + 0.5 * Math.sin(i * 2.1 + t * 0.001));
+    const px = cx + Math.cos(angle) * d2;
+    const py = cy + Math.sin(angle) * d2 * 0.6;
+    const sz = 0.4 + Math.sin(t * 0.005 + i) * 0.25;
+    ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(59,130,246,${0.08 + Math.sin(t * 0.003 + i) * 0.08})`; ctx.fill();
+  }
+}
+
+// ── Interaction ──
+canvas.addEventListener('mousedown', e => { dragStart = { x: e.clientX, y: e.clientY }; dragRotStart = { x: rotY, y: rotX }; autoRotate = false; });
+canvas.addEventListener('mousemove', e => { if (!dragStart) return; rotY = dragRotStart.x + (e.clientX - dragStart.x) * 0.005; rotX = dragRotStart.y + (e.clientY - dragStart.y) * 0.005; });
+canvas.addEventListener('mouseup', () => { dragStart = null; setTimeout(() => autoRotate = true, 3000); });
+canvas.addEventListener('touchstart', e => { const t2 = e.touches[0]; dragStart = { x: t2.clientX, y: t2.clientY }; dragRotStart = { x: rotY, y: rotX }; autoRotate = false; }, { passive: true });
+canvas.addEventListener('touchmove', e => { if (!dragStart) return; const t2 = e.touches[0]; rotY = dragRotStart.x + (t2.clientX - dragStart.x) * 0.005; rotX = dragRotStart.y + (t2.clientY - dragStart.y) * 0.005; }, { passive: true });
+canvas.addEventListener('touchend', () => { dragStart = null; setTimeout(() => autoRotate = true, 3000); });
+
+// ── Packet simulation ──
+function updatePackets() {
+  activePackets = activePackets.filter(pkt => {
+    pkt.progress += 1 / (pkt.duration / 16);
+    if (pkt.progress >= 0.95 && !pkt.arrived) {
+      pkt.arrived = true;
+      nodeHeatmap[pkt.to] = Math.min(1, (nodeHeatmap[pkt.to] || 0) + 0.3);
+    }
+    return pkt.progress < 1;
+  });
+  nodes.forEach((_, i) => { if (nodeHeatmap[i]) nodeHeatmap[i] *= 0.98; });
+}
+
+document.getElementById('btn-spray').addEventListener('click', () => {
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      const from = Math.floor(Math.random() * nodes.length);
+      let to = from; while (to === from) to = Math.floor(Math.random() * nodes.length);
+      activePackets.push({ from, to, progress: 0, duration: 2000, arrived: false });
+    }, i * 200);
+  }
+});
+
+document.getElementById('btn-heatmap').addEventListener('click', () => {
+  heatmapEnabled = !heatmapEnabled;
+  document.getElementById('btn-heatmap').style.backgroundColor = heatmapEnabled ? 'rgba(34,211,238,0.2)' : 'transparent';
+});
+
+document.getElementById('btn-predict').addEventListener('click', () => {
+  predictMode = !predictMode;
+  document.getElementById('btn-predict').style.backgroundColor = predictMode ? 'rgba(16,185,129,0.2)' : 'transparent';
+  document.getElementById('predict-legend').classList.toggle('hidden', !predictMode);
+  if (predictMode) initSSE();
+});
+
+// ── SSE connection for predictive routing ──
+function initSSE() {
+  try {
+    if (sseClient) sseClient.close();
+    sseClient = new EventSource(`${QNET_SERVER}/events`);
+
+    sseClient.onopen = () => {
+      document.getElementById('connection-status').textContent = 'BRAIN SYNC: ONLINE';
+      document.getElementById('connection-status').style.color = '#6ee7b7';
+    };
+
+    sseClient.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+
+        if (msg.type === 'edge_predict' && Array.isArray(msg.data)) {
+          // data از metrics-server: [{ from, to, score, trend, stability, latencyEMA }]
+          edgePredictions.clear();
+          msg.data.forEach((pred) => {
+            // نگاشت from/to (ID نود) به index برای نمایش
+            const fromIdx = nodes.findIndex(n => n.name.includes(pred.from) || pred.from.includes(n.name.split(' ')[0]));
+            const toIdx   = nodes.findIndex(n => n.name.includes(pred.to)   || pred.to.includes(n.name.split(' ')[0]));
+            if (fromIdx >= 0 && toIdx >= 0) {
+              edgePredictions.set(`${Math.min(fromIdx, toIdx)}-${Math.max(fromIdx, toIdx)}`, pred);
+            }
+            // Best path display
+            if (msg.data.length > 0) {
+              const best = msg.data.reduce((a, b) => a.score > b.score ? a : b);
+              const row = document.getElementById('best-path-row');
+              const val = document.getElementById('best-path-value');
+              if (row && val) {
+                row.style.display = 'flex';
+                val.textContent = `${best.from}→${best.to} (${Math.round(best.score * 100)}%)`;
+                val.style.color = best.score >= 0.7 ? '#6ee7b7' : best.score >= 0.4 ? '#fbbf24' : '#f87171';
+              }
+            }
+          });
+        }
+
+        if (msg.type === 'congestion_state' && msg.data) {
+          // می‌توانیم برای آینده استفاده کنیم
+        }
+      } catch { /* ignore */ }
+    };
+
+    sseClient.onerror = () => {
+      document.getElementById('connection-status').textContent = 'DEMO MODE — SSE RETRY';
+      setTimeout(initSSE, 5000);
+    };
+  } catch { /* standalone mode */ }
+}
+
+// ── Stats animation ──
+let synapseTarget = 847293, synapseCurrent = 0;
+const synapseEl = document.getElementById('synapse-count');
+
+function updateStats() {
+  document.getElementById('stat-load').textContent = (85 + Math.random() * 10).toFixed(1) + '%';
+  document.getElementById('stat-freq').textContent = (420 + Math.random() * 25).toFixed(0) + ' Hz';
+  document.getElementById('stat-coherence').textContent = (94 + Math.random() * 5).toFixed(1) + '%';
+  synapseTarget += Math.floor(Math.random() * 500);
+}
+setInterval(updateStats, 2000);
+
+// ── Animation loop ──
+function animate(t) {
+  if (autoRotate) rotY += 0.0015;
+  synapseCurrent += (synapseTarget - synapseCurrent) * 0.05;
+  synapseEl.textContent = Math.floor(synapseCurrent).toLocaleString();
+  updatePackets();
+  document.getElementById('stat-packets').textContent = activePackets.length;
+  drawGlobe(t);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

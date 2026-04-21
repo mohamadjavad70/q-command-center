@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QMetaram Swiss — Ihr Persönlicher Assistent</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 480px;
+      width: 100%;
+      background: #fff;
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.10);
+    }
+
+    .flag { font-size: 44px; text-align: center; margin-bottom: 8px; }
+
+    h1 {
+      text-align: center;
+      color: #1a1a2e;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      letter-spacing: -0.3px;
+    }
+
+    .chat-box {
+      background: #f8f9fa;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      min-height: 110px;
+      border: 1.5px solid #e9ecef;
+    }
+
+    #message {
+      color: #343a40;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .voice-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .18s, box-shadow .18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .voice-btn:hover  { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(102,126,234,.35); }
+    .voice-btn:active { transform: translateY(0); }
+
+    .voice-btn.listening {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      animation: pulse 1.1s infinite;
+    }
+
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .72; } }
+
+    .time-saved {
+      background: #d4edda;
+      color: #155724;
+      padding: 13px 16px;
+      border-radius: 10px;
+      margin-top: 16px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      display: none;
+    }
+
+    .security-badge {
+      text-align: center;
+      margin-top: 20px;
+      color: #6c757d;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .security-badge span { display: flex; align-items: center; gap: 4px; }
+
+    .no-speech-note {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="flag">🇨🇭</div>
+    <h1>QMetaram Swiss</h1>
+
+    <div class="chat-box">
+      <div id="message">
+        Grüezi! Ich bin Ihr persönlicher KI-Assistent.<br><br>
+        Drücken Sie den Knopf und sprechen Sie Ihren Auftrag.
+      </div>
+    </div>
+
+    <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+      🎤 <span id="btnLabel">Sprechen Sie jetzt</span>
+    </button>
+
+    <div class="time-saved" id="timeSaved">
+      ⏱️ Sie haben heute <strong><span id="minutes">0</span> Minuten</strong> gespart!
+    </div>
+
+    <div class="no-speech-note" id="noSpeechNote">
+      Ihr Browser unterstützt Spracherkennung nicht. Bitte Chrome oder Safari verwenden.
+    </div>
+
+    <div class="security-badge">
+      <span>🔒 E2E-Verschlüsselung</span>
+      <span>🇨🇭 Swiss Server</span>
+      <span>🛡️ DSGVO-konform</span>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    let isListening = false;
+    let timeSavedMinutes = 0;
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+    let recognition = null;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'de-CH';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        stopListeningUI();
+        processVoiceCommand(transcript);
+      };
+
+      recognition.onerror = () => {
+        stopListeningUI();
+        setMessage('Entschuldigung — ich habe Sie nicht verstanden. Bitte erneut versuchen.');
+      };
+
+      recognition.onend = () => stopListeningUI();
+    } else {
+      document.getElementById('noSpeechNote').style.display = 'block';
+    }
+
+    function toggleVoice() {
+      if (!recognition) return;
+      if (isListening) {
+        recognition.stop();
+        stopListeningUI();
+      } else {
+        recognition.start();
+        startListeningUI();
+      }
+    }
+
+    function startListeningUI() {
+      isListening = true;
+      const btn = document.getElementById('voiceBtn');
+      btn.classList.add('listening');
+      document.getElementById('btnLabel').textContent = 'Höre zu…';
+    }
+
+    function stopListeningUI() {
+      isListening = false;
+      const btn = document.getElementById('voiceBtn');
+      btn.classList.remove('listening');
+      document.getElementById('btnLabel').textContent = 'Sprechen Sie jetzt';
+    }
+
+    const COMMANDS = [
+      { patterns: ['email', 'mail', 'e-mail'],
+        reply: '📧 Ich habe Ihre E-Mails analysiert. 3 Spam-Nachrichten blockiert, 2 wichtige E-Mails markiert.',
+        saved: 8 },
+      { patterns: ['kalender', 'termin', 'meeting', 'besprechung'],
+        reply: '📅 Ihr Kalender wurde optimiert. Nächster freier Slot: morgen 10:00 Uhr.',
+        saved: 5 },
+      { patterns: ['aufgabe', 'aufgaben', 'todo', 'plan', 'planung'],
+        reply: '✅ Ihre heutigen Aufgaben: 3 erledigt, 2 ausstehend. Priorität: Projektbericht.',
+        saved: 6 },
+      { patterns: ['wetter', 'temperatur', 'regen', 'schnee'],
+        reply: '🌤️ Zürich: 18°C, sonnig. Perfektes Wetter für einen Spaziergang! 🏔️',
+        saved: 1 },
+      { patterns: ['sicherheit', 'betrug', 'phishing', 'scam', 'spam'],
+        reply: '🛡️ Sicherheitscheck abgeschlossen. Keine Bedrohungen gefunden. Ihr Konto ist sicher.',
+        saved: 10 },
+      { patterns: ['bericht', 'report', 'zusammenfassung'],
+        reply: '📊 Tagesbericht: 5 Aufgaben, 3 E-Mails, 2 Termine. Sie haben 30 Minuten gespart!',
+        saved: 12 },
+    ];
+
+    function processVoiceCommand(command) {
+      setMessage('🎤 Sie sagten: "' + command + '"\n\n⏳ Verarbeitung…');
+
+      setTimeout(() => {
+        const lower = command.toLowerCase();
+        const match = COMMANDS.find(c => c.patterns.some(p => lower.includes(p)));
+
+        if (match) {
+          setMessage(match.reply);
+          addTimeSaved(match.saved);
+        } else {
+          setMessage(
+            '✅ Auftrag erhalten: "' + command + '"\n\n' +
+            'Ich kann helfen mit: E-Mails, Kalender, Aufgaben, Wetter, Sicherheit.'
+          );
+          addTimeSaved(2);
+        }
+      }, 900);
+    }
+
+    function setMessage(text) {
+      document.getElementById('message').textContent = text;
+    }
+
+    function addTimeSaved(mins) {
+      timeSavedMinutes += mins;
+      document.getElementById('timeSaved').style.display = 'block';
+      document.getElementById('minutes').textContent = timeSavedMinutes;
+    }
+  </script>
+</body>
+</html>

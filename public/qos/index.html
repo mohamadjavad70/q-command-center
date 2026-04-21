@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Q-OS | Voice Operating System</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #000;
+      color: #4afa82;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    h1 { font-size: 1.5rem; letter-spacing: .3em; border-bottom: 1px solid #1a4a2a; padding-bottom: .5rem; margin-bottom: .25rem; }
+    .subtitle { font-size: .65rem; color: #2a6a3a; margin-bottom: 2rem; }
+    #status { font-size: .75rem; font-weight: bold; letter-spacing: .15em; margin-bottom: .75rem; }
+    #terminal {
+      width: 100%;
+      max-width: 720px;
+      height: 300px;
+      background: #000;
+      border: 1px solid #1a4a2a;
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-y: auto;
+      font-size: .72rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+    .controls { display: flex; gap: 1rem; }
+    button {
+      padding: .5rem 1.4rem;
+      font-family: inherit;
+      font-size: .75rem;
+      letter-spacing: .15em;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    #btnSpeak  { border: 1px solid #4afa82; color: #4afa82; background: transparent; }
+    #btnSpeak:hover { background: #0a2a12; }
+    #btnSpeak:disabled { opacity: .4; cursor: default; }
+    #btnStop   { border: 1px solid #a03030; color: #a03030; background: transparent; }
+    #btnStop:hover { background: #1a0505; }
+    #btnClear  { border: 1px solid #2a4a2a; color: #3a7a3a; background: transparent; }
+    #btnClear:hover { background: #0a150a; }
+  </style>
+</head>
+<body>
+  <h1>Q-OS</h1>
+  <div class="subtitle">Voice Operating System v1.0 · Wake-Word: "Q"</div>
+  <div id="status" style="color:#4afa82">[BEREIT]</div>
+  <div id="terminal">
+    <div>&gt; QOS v1.0 gestartet...</div>
+    <div>&gt; Sage "Q" gefolgt von einem Befehl.</div>
+  </div>
+  <div class="controls">
+    <button id="btnSpeak">SPRECHEN</button>
+    <button id="btnStop">STOP</button>
+    <button id="btnClear">LÖSCHEN</button>
+  </div>
+
+<script>
+(function () {
+  const terminal  = document.getElementById('terminal');
+  const statusEl  = document.getElementById('status');
+  const btnSpeak  = document.getElementById('btnSpeak');
+  const btnStop   = document.getElementById('btnStop');
+  const btnClear  = document.getElementById('btnClear');
+  let recognition = null;
+
+  function log(msg) {
+    const d = document.createElement('div');
+    d.textContent = '> ' + msg;
+    terminal.appendChild(d);
+    terminal.scrollTop = terminal.scrollHeight;
+    if (terminal.children.length > 80) terminal.children[0].remove();
+  }
+
+  function setStatus(label, color) {
+    statusEl.textContent = '[' + label + ']';
+    statusEl.style.color = color || '#4afa82';
+  }
+
+  function speak(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utt  = new SpeechSynthesisUtterance(text);
+    utt.lang   = 'de-CH';
+    utt.rate   = 0.88;
+    utt.pitch  = 1.05;
+    setStatus('SPRECHEN', '#c080ff');
+    utt.onend = () => setStatus('BEREIT', '#4afa82');
+    window.speechSynthesis.speak(utt);
+  }
+
+  async function processCommand(cmd) {
+    setStatus('VERARBEITUNG', '#facc15');
+    log('Befehl: ' + cmd);
+
+    const lower = cmd.toLowerCase().trim();
+    if (!lower.startsWith('q ') && lower !== 'q') {
+      log('Kein Weckwort — bitte mit "Q" beginnen');
+      setStatus('BEREIT', '#4afa82');
+      return;
+    }
+    const stripped = lower.replace(/^q\s*/, '');
+    let response = 'Befehl wird verarbeitet';
+
+    if (/status|zustand/.test(stripped))        response = 'Alle Systeme betriebsbereit.';
+    else if (/zeit|time/.test(stripped))        response = 'Es ist ' + new Date().toLocaleTimeString('de-CH') + ' Uhr.';
+    else if (/hilfe|help/.test(stripped))       response = 'Verfügbare Befehle: Status, Zeit, Speicher, Analyse.';
+    else if (/speicher|memory/.test(stripped))  response = 'Speicher normal. Kein Engpass.';
+    else if (/analyse|analyze/.test(stripped))  response = 'Netzwerk: 12 Knoten aktiv, Latenz unter 20ms.';
+    else if (/beenden|stop/.test(stripped))     response = 'Q schaltet in Standby.';
+
+    log('Antwort: ' + response);
+    speak(response);
+  }
+
+  function startListening() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { log('Spracherkennung nicht verfügbar — bitte Chrome verwenden.'); return; }
+    recognition = new SR();
+    recognition.lang           = 'de-CH';
+    recognition.interimResults = false;
+    recognition.onstart  = () => { setStatus('ZUHÖREN', '#67e8f9'); log('Zuhören...'); };
+    recognition.onerror  = (e) => { log('Fehler: ' + e.error); setStatus('FEHLER', '#ef4444'); };
+    recognition.onresult = (e) => {
+      const cmd = e.results[0][0].transcript;
+      processCommand(cmd);
+    };
+    recognition.onend = () => setStatus('BEREIT', '#4afa82');
+    recognition.start();
+    btnSpeak.disabled = true;
+    recognition.onend = () => { setStatus('BEREIT', '#4afa82'); btnSpeak.disabled = false; };
+  }
+
+  btnSpeak.addEventListener('click', startListening);
+  btnStop.addEventListener('click', () => {
+    if (recognition) recognition.abort();
+    window.speechSynthesis?.cancel();
+    setStatus('BEREIT', '#4afa82');
+    btnSpeak.disabled = false;
+  });
+  btnClear.addEventListener('click', () => {
+    terminal.innerHTML = '';
+    log('Terminal geleert.');
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 6% 3%;
+    --foreground: 43 30% 82%;
+
+    --card: 40 8% 6%;
+    --card-foreground: 43 30% 82%;
+
+    --popover: 40 8% 6%;
+    --popover-foreground: 43 30% 82%;
+
+    --primary: 43 96% 56%;
+    --primary-foreground: 40 10% 4%;
+
+    --secondary: 40 8% 10%;
+    --secondary-foreground: 43 30% 82%;
+
+    --muted: 40 6% 11%;
+    --muted-foreground: 40 10% 42%;
+
+    --accent: 40 10% 12%;
+    --accent-foreground: 43 30% 82%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 43 30% 98%;
+
+    --border: 40 12% 14%;
+    --input: 40 12% 14%;
+    --ring: 43 96% 56%;
+
+    --radius: 0.5rem;
+
+    /* Qmetaram sovereign tokens */
+    --neon-gold: 43 96% 56%;
+    --neon-amber: 38 92% 50%;
+    --neon-green: 142 71% 45%;
+    --neon-red: 0 85% 55%;
+    --neon-blue: 210 100% 56%;
+    --neon-purple: 270 76% 60%;
+
+    --glass: 40 6% 3% / 0.75;
+    --glass-border: 43 30% 82% / 0.06;
+
+    --sidebar-background: 40 6% 4%;
+    --sidebar-foreground: 43 20% 70%;
+    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary-foreground: 40 10% 4%;
+    --sidebar-accent: 40 8% 9%;
+    --sidebar-accent-foreground: 43 20% 70%;
+    --sidebar-border: 40 10% 12%;
+    --sidebar-ring: 43 96% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background: hsl(var(--glass));
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 24px -6px hsl(var(--neon-gold) / 0.25);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px -4px hsl(var(--neon-blue) / 0.3);
+  }
+
+  .glow-red {
+    box-shadow: 0 0 20px -4px hsl(var(--neon-red) / 0.3);
+  }
+
+  .text-glow-gold {
+    text-shadow: 0 0 14px hsl(var(--neon-gold) / 0.5);
+  }
+
+  .text-glow-blue {
+    text-shadow: 0 0 12px hsl(var(--neon-blue) / 0.5);
+  }
+
+  .text-glow-red {
+    text-shadow: 0 0 12px hsl(var(--neon-red) / 0.5);
+  }
+}

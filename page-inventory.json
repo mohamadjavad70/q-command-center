@@ -1,0 +1,1227 @@
+{
+  "generatedAt": "2026-02-28T00:00:00.000Z",
+  "sources": {
+    "routerFiles": ["src/App.tsx"],
+    "navigationFiles": ["src/lib/NavigationMap.ts"],
+    "pagesFolders": ["src/pages/"]
+  },
+  "pages": [
+    {
+      "path": "/",
+      "component": "Index.tsx",
+      "file": "src/pages/Index.tsx",
+      "module": "qmetaram-hub",
+      "status": "ready",
+      "health": {
+        "buildErrors": false,
+        "runtimeRisk": "low",
+        "hasErrorBoundary": true,
+        "usesWebGL": false
+      },
+      "access": "public",
+      "completionScore": 85,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:26"],
+        "navFoundIn": [],
+        "notes": "Dedicated route. Renders KPIs from NavigationMap stats, links to all modules. No placeholder text. Real data wiring via getNavigationStats()."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/sam-arman",
+      "component": "SamArman.tsx",
+      "file": "src/pages/SamArman.tsx",
+      "module": "qmetaram-hub",
+      "status": "ready",
+      "health": {
+        "buildErrors": false,
+        "runtimeRisk": "low",
+        "hasErrorBoundary": true,
+        "usesWebGL": false
+      },
+      "access": "private",
+      "completionScore": 100,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:27"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:70"],
+        "notes": "Dedicated route + nav entry. Full executive dashboard with KPIs, charts (ModuleDashboard), AccessControlPanel, ExecutiveChat, and module group browser. Real data from NavigationMap. Error boundary at App level."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/q-core",
+      "component": "QCore.tsx",
+      "file": "src/pages/QCore.tsx",
+      "module": "q-metaram",
+      "status": "partial",
+      "health": {
+        "buildErrors": false,
+        "runtimeRisk": "med",
+        "hasErrorBoundary": true,
+        "usesWebGL": false
+      },
+      "access": "private",
+      "completionScore": 85,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:28"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:98"],
+        "notes": "Dedicated route. Uses ReactFlow (canvas-based, not WebGL). Has validated localStorage (safeParseJSON). Complex component (328 lines) with workflow builder, node inspector, forge chat, run logs. Real data wiring."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/q-analytics",
+      "component": "QAnalytics.tsx",
+      "file": "src/pages/QAnalytics.tsx",
+      "module": "qmetaram-hub",
+      "status": "ready",
+      "health": {
+        "buildErrors": false,
+        "runtimeRisk": "low",
+        "hasErrorBoundary": true,
+        "usesWebGL": false
+      },
+      "access": "public",
+      "completionScore": 85,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:29"],
+        "navFoundIn": [],
+        "notes": "Dedicated route. Analytics dashboard using NavigationMap stats and statusMeta. 171 lines. Real data from getNavigationStats()."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/q-network",
+      "component": "QNetwork.tsx",
+      "file": "src/pages/QNetwork.tsx",
+      "module": "this-project",
+      "status": "ready",
+      "health": {
+        "buildErrors": false,
+        "runtimeRisk": "low",
+        "hasErrorBoundary": true,
+        "usesWebGL": false
+      },
+      "access": "public",
+      "completionScore": 80,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:30"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:118"],
+        "notes": "Dedicated route. Mesh network dashboard with simulated nodes, council members, ExecutiveChat. Data is simulated (setInterval) not from real backend."
+      },
+      "duplicates": [
+        { "similarToPath": "/network", "reason": "Both are network monitoring pages", "confidence": 0.6 }
+      ]
+    },
+    {
+      "path": "/admin",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:68"],
+        "notes": "Falls through to SovereignPage catch-all. Renders placeholder with status info. No dedicated component."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/admin/hierarchy",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:69"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/settings",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:71"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/transparency",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:72"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/impressum",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:73"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/terms",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:74"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/privacy",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:75"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/about",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:76"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/sun-core",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "q-metaram",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:90"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": [
+        { "similarToPath": "/q-core", "reason": "Both are 'core' operation centers", "confidence": 0.5 }
+      ]
+    },
+    {
+      "path": "/command-center",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "q-metaram",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:91"],
+        "notes": "Placeholder via SovereignPage. Overlaps conceptually with /sam-arman (executive command)."
+      },
+      "duplicates": [
+        { "similarToPath": "/sam-arman", "reason": "Both serve as command/executive centers", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/chat",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:92"],
+        "notes": "Placeholder. ExecutiveChat already embedded in /sam-arman and /q-network."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/chat/archive",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:93"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ai-tools",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:94"],
+        "notes": "Placeholder. Overlaps with /ai-assistant."
+      },
+      "duplicates": [
+        { "similarToPath": "/ai-assistant", "reason": "Both are AI tool/assistant pages", "confidence": 0.8 }
+      ]
+    },
+    {
+      "path": "/ai-assistant",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:95"],
+        "notes": "Placeholder. Overlaps with /ai-tools."
+      },
+      "duplicates": [
+        { "similarToPath": "/ai-tools", "reason": "Both are AI tool/assistant pages", "confidence": 0.8 }
+      ]
+    },
+    {
+      "path": "/agent-forge",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:96"],
+        "notes": "Placeholder. /q-core already serves as the agent forge with ReactFlow workflow builder."
+      },
+      "duplicates": [
+        { "similarToPath": "/q-core", "reason": "Both are agent building/forge tools", "confidence": 0.9 }
+      ]
+    },
+    {
+      "path": "/ollama",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:97"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/auth",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "unified",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:112"],
+        "notes": "Placeholder. Notes say 'merged from 5 projects'. No actual auth implementation."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/security",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:113"],
+        "notes": "Placeholder. Overlaps with /security/unified, /sentinel, /war-room."
+      },
+      "duplicates": [
+        { "similarToPath": "/security/unified", "reason": "Both are security dashboards", "confidence": 0.9 },
+        { "similarToPath": "/sentinel", "reason": "Sentinel is a security monitoring dashboard", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/security/unified",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:114"],
+        "notes": "Placeholder. Part of security cluster."
+      },
+      "duplicates": [
+        { "similarToPath": "/security", "reason": "Sub-page of security dashboard", "confidence": 0.9 }
+      ]
+    },
+    {
+      "path": "/security/guardian",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "guardian-dojo",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:115"],
+        "notes": "Placeholder. Part of security cluster."
+      },
+      "duplicates": [
+        { "similarToPath": "/security", "reason": "Security sub-module", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/sentinel",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:116"],
+        "notes": "Placeholder. Part of security cluster."
+      },
+      "duplicates": [
+        { "similarToPath": "/security", "reason": "Security monitoring dashboard", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/network",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:117"],
+        "notes": "Placeholder. /q-network already serves as a dedicated network page."
+      },
+      "duplicates": [
+        { "similarToPath": "/q-network", "reason": "Both are network monitoring pages", "confidence": 0.8 }
+      ]
+    },
+    {
+      "path": "/war-room",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "unified",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:119"],
+        "notes": "Placeholder. Conceptual overlap with /security and /sam-arman."
+      },
+      "duplicates": [
+        { "similarToPath": "/security", "reason": "War room is a security/command context", "confidence": 0.6 },
+        { "similarToPath": "/sam-arman", "reason": "Executive command overlap", "confidence": 0.5 }
+      ]
+    },
+    {
+      "path": "/security/whitepaper",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:120"],
+        "notes": "Placeholder. Content-only page (whitepaper), distinct purpose from security dashboards."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/studio/beethoven",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:134"],
+        "notes": "Placeholder. Notes: 'Retry Logic needed'."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/studio/davinci",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:135"],
+        "notes": "Placeholder. Notes: 'Needs inspiration library'."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/studio/matrix",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:136"],
+        "notes": "Placeholder. Notes: 'Needs code+icon output'."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/tesla-lab",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:137"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/exchange",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:151"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/exchange/dashboard",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:152"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/exchange/markets",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:153"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/exchange/tokens",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:154"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/exchange/wallet",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:155"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/exchange/ai-galaxy",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:156"],
+        "notes": "Overlaps with /exchange/ai-market."
+      },
+      "duplicates": [
+        { "similarToPath": "/exchange/ai-market", "reason": "Both are AI marketplace pages within exchange", "confidence": 0.8 }
+      ]
+    },
+    {
+      "path": "/exchange/ai-market",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:157"],
+        "notes": "Overlaps with /exchange/ai-galaxy."
+      },
+      "duplicates": [
+        { "similarToPath": "/exchange/ai-galaxy", "reason": "Both are AI marketplace pages within exchange", "confidence": 0.8 }
+      ]
+    },
+    {
+      "path": "/exchange/referrals",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:158"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/star-world",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "q-metaram",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:172"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": [
+        { "similarToPath": "/galaxy", "reason": "Both are cosmic/galaxy view pages", "confidence": 0.6 }
+      ]
+    },
+    {
+      "path": "/galaxy",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:173"],
+        "notes": "Placeholder. Overlaps with /star-world."
+      },
+      "duplicates": [
+        { "similarToPath": "/star-world", "reason": "Both are cosmic/galaxy view pages", "confidence": 0.6 }
+      ]
+    },
+    {
+      "path": "/omega-node",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:174"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/qpn",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:175"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/qpn/messenger",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:176"],
+        "notes": "Placeholder. Overlaps with /chat."
+      },
+      "duplicates": [
+        { "similarToPath": "/chat", "reason": "Both are messaging/chat interfaces", "confidence": 0.6 }
+      ]
+    },
+    {
+      "path": "/qpn/quantum-link",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:177"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/dashboard/q11",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:191"],
+        "notes": "Placeholder. Overlaps with /q-analytics and /sam-arman dashboards."
+      },
+      "duplicates": [
+        { "similarToPath": "/q-analytics", "reason": "Both are analytics/monitoring dashboards", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/dashboard/noor",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:192"],
+        "notes": "Placeholder. Overlaps with /sam-arman (Noor strategic = executive view)."
+      },
+      "duplicates": [
+        { "similarToPath": "/sam-arman", "reason": "Noor strategic dashboard overlaps with executive panel", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/dashboard/sovereign",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:193"],
+        "notes": "Placeholder. Overlaps with /sam-arman (sovereign governance)."
+      },
+      "duplicates": [
+        { "similarToPath": "/sam-arman", "reason": "Sovereign dashboard overlaps with executive panel", "confidence": 0.6 }
+      ]
+    },
+    {
+      "path": "/marketplace",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:207"],
+        "notes": "Placeholder. Overlaps with /modules."
+      },
+      "duplicates": [
+        { "similarToPath": "/modules", "reason": "Both are module browsing interfaces", "confidence": 0.8 }
+      ]
+    },
+    {
+      "path": "/modules",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:208"],
+        "notes": "Placeholder. Overlaps with /marketplace."
+      },
+      "duplicates": [
+        { "similarToPath": "/marketplace", "reason": "Both are module browsing interfaces", "confidence": 0.8 }
+      ]
+    },
+    {
+      "path": "/compare",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:209"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/search",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:210"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/subscriptions",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:211"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "partial",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:225"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas/matrix-gateways",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "matrix-gateways",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:226"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas/whispering-galaxies",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "whispering-galaxies",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:227"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas/guardian-core",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "guardian-core",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:228"],
+        "notes": "Placeholder. Conceptual overlap with /security/guardian."
+      },
+      "duplicates": [
+        { "similarToPath": "/security/guardian", "reason": "Both are 'guardian' security concepts", "confidence": 0.6 }
+      ]
+    },
+    {
+      "path": "/ideas/listening-ear",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qs-listening-ear",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:229"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas/golgolab",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "golgolab",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:230"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas/persian-muse",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "persian-ai-muse",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:231"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas/galaxy-planet",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "galaxy-planet-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:232"],
+        "notes": "Placeholder. Conceptual overlap with /galaxy and /star-world."
+      },
+      "duplicates": [
+        { "similarToPath": "/galaxy", "reason": "Galaxy-themed pages", "confidence": 0.5 }
+      ]
+    },
+    {
+      "path": "/ideas/mowlana",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:233"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/ideas/quantum-therapy",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:234"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/private-hub",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:248"],
+        "notes": "Placeholder. Conceptual overlap with /sovereign-hub."
+      },
+      "duplicates": [
+        { "similarToPath": "/sovereign-hub", "reason": "Both are private/sovereign hub pages", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/hall",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:249"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/sovereign-hub",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:250"],
+        "notes": "Placeholder. Overlaps with /private-hub."
+      },
+      "duplicates": [
+        { "similarToPath": "/private-hub", "reason": "Both are private/sovereign hub pages", "confidence": 0.7 }
+      ]
+    },
+    {
+      "path": "/memorial",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "samir-exchange",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "private",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:251"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    },
+    {
+      "path": "/install",
+      "component": "SovereignPage.tsx",
+      "file": "src/pages/SovereignPage.tsx",
+      "module": "qmetaram-hub",
+      "status": "stub",
+      "health": { "buildErrors": false, "runtimeRisk": "low", "hasErrorBoundary": true, "usesWebGL": false },
+      "access": "public",
+      "completionScore": 45,
+      "evidence": {
+        "routesFoundIn": ["src/App.tsx:31 (catch-all /*)"],
+        "navFoundIn": ["src/lib/NavigationMap.ts:252"],
+        "notes": "Placeholder via SovereignPage."
+      },
+      "duplicates": []
+    }
+  ],
+  "orphanFiles": [
+    {
+      "file": "src/pages/NotFound.tsx",
+      "notes": "Exists as a file but is NOT routed in App.tsx. The catch-all /* goes to SovereignPage instead. This file is dead code."
+    }
+  ],
+  "summary": {
+    "totalRoutes": 6,
+    "totalNavEntries": 67,
+    "totalPagesFiles": 7,
+    "uniquePages": 67,
+    "dedicatedPages": 5,
+    "placeholderPages": 62,
+    "duplicateClusters": 8,
+    "brokenRoutes": 0,
+    "orphanFiles": 1,
+    "averageCompletionScore": 49
+  }
+}
