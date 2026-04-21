@@ -660,7 +660,7 @@ export default function QCyberCommand() {
                         ? 'ring-1 bg-cyan-400/10'
                         : 'hover:bg-white/5'
                     }`}
-                    style={{ ringColor: n.color }}
+                     style={{ '--ring-color': n.color } as React.CSSProperties}
                     onClick={() => handleNodeSelect(n)}
                   >
                     <span className="w-2 h-2 rounded-full flex-shrink-0"
