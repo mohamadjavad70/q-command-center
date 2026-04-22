@@ -155,7 +155,11 @@
   <div class="btn-row">
     <input id="text-input" type="text" placeholder="یا اینجا تایپ کن..." />
     <button class="q-btn" id="send-btn">ارسال</button>
-    <button class="q-btn" id="mic-btn">🎤 فعالسازی</button>    <button class="q-btn" id="memory-btn" style="background:rgba(0,255,136,.08);color:#00ff88;border:1px solid rgba(0,255,136,.3);font-size:.65rem;">🧠 ۰</button>  </div>
+    <button class="q-btn" id="mic-btn">🎤 فعالسازی</button>
+    <button class="q-btn" id="test-voice-btn" style="background:rgba(255,214,0,.1);color:#ffd600;border:1px solid rgba(255,214,0,.35);font-size:.65rem;">🔊 تست صدا</button>
+    <button class="q-btn" id="memory-btn" style="background:rgba(0,255,136,.08);color:#00ff88;border:1px solid rgba(0,255,136,.3);font-size:.65rem;">🧠 ۰</button>
+  </div>
+  <div id="voice-hint" style="margin-top:8px;font-size:.68rem;opacity:.7;">برای پخش صدای پایدار، یک‌بار روی «تست صدا» یا «فعالسازی» بزن.</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -594,20 +598,99 @@ async function processInput(text) {
 
 // ── TEXT-TO-SPEECH ────────────────────────────────────────────────
 const synth = window.speechSynthesis;
+let userInteracted = false;
+let voicesReady = false;
+let availableVoices = [];
+let speechQueue = [];
+let speakingNow = false;
+
+function refreshVoices() {
+  if (!synth) return;
+  availableVoices = synth.getVoices() || [];
+  voicesReady = availableVoices.length > 0;
+}
+
+function initVoices() {
+  if (!synth) return;
+  refreshVoices();
+  if (!voicesReady) {
+    synth.onvoiceschanged = () => {
+      refreshVoices();
+    };
+    setTimeout(refreshVoices, 800);
+  }
+}
+
+function pickBestVoice(text) {
+  refreshVoices();
+  if (!availableVoices.length) return null;
+  const isLatin = /[a-z]/i.test(text);
+  const preferred = isLatin ? ['de-CH', 'de-DE', 'en-US'] : ['fa-IR', 'fa'];
+
+  for (const p of preferred) {
+    const found = availableVoices.find(v => (v.lang || '').toLowerCase() === p.toLowerCase());
+    if (found) return found;
+  }
+  for (const p of preferred) {
+    const found = availableVoices.find(v => (v.lang || '').toLowerCase().startsWith(p.split('-')[0].toLowerCase()));
+    if (found) return found;
+  }
+  return availableVoices[0];
+}
+
+function flushSpeechQueue(fromState) {
+  if (!speechQueue.length || speakingNow || !synth) return;
+
+  const nextText = speechQueue.shift();
+  const u = new SpeechSynthesisUtterance(nextText);
+  const voice = pickBestVoice(nextText);
+
+  if (voice) {
+    u.voice = voice;
+    u.lang = voice.lang;
+  } else {
+    u.lang = /[a-z]/i.test(nextText) ? 'de-DE' : 'fa-IR';
+  }
+
+  u.rate = .87;
+  u.pitch = 1.05;
+
+  setState('speaking');
+  speakingNow = true;
+
+  u.onend = () => {
+    speakingNow = false;
+    if (!speechQueue.length && curState.id === 'speaking') setState(fromState || 'idle');
+    flushSpeechQueue(fromState);
+  };
+
+  u.onerror = () => {
+    speakingNow = false;
+    document.getElementById('response-text').textContent = 'پخش صدا خطا داد. روی «تست صدا» بزن و دوباره تلاش کن.';
+    if (curState.id === 'speaking') setState(fromState || 'idle');
+  };
+
+  synth.speak(u);
+}
+
+function unlockVoice() {
+  userInteracted = true;
+  initVoices();
+  const hint = document.getElementById('voice-hint');
+  if (hint) hint.textContent = voicesReady ? 'صدا آماده است.' : 'در حال بارگذاری voiceهای سیستم...';
+}
 
 function speakOut(text, fromState) {
   if (!synth) return;
-  synth.cancel();
-  const u  = new SpeechSynthesisUtterance(text);
-  u.lang   = text.match(/[a-z]/i) ? 'de-CH' : 'fa-IR';
-  u.rate   = .87;
-  u.pitch  = 1.05;
-  setState('speaking');
-  u.onend = () => {
-    if (curState.id === 'speaking') setState(fromState || 'idle');
-    isSpeaking = false;
-  };
-  synth.speak(u);
+
+  if (!userInteracted) {
+    const hint = document.getElementById('voice-hint');
+    if (hint) hint.textContent = 'برای فعال شدن صدا، یک‌بار روی «تست صدا» یا «فعالسازی» بزن.';
+    return;
+  }
+
+  speechQueue.push(text);
+  flushSpeechQueue(fromState);
   isSpeaking = true;
 }
 
@@ -672,6 +755,7 @@ function stopMic() {
 
 // ── UI EVENTS ─────────────────────────────────────────────────────
 document.getElementById('mic-btn').addEventListener('click', () => {
+  unlockVoice();
   if (!recognition && !initMic()) return;
   if (micActive) {
     micActive = false;
@@ -684,9 +768,17 @@ document.getElementById('mic-btn').addEventListener('click', () => {
 });
 
 document.getElementById('send-btn').addEventListener('click', () => {
+  unlockVoice();
   const inp = document.getElementById('text-input');
   const val = inp.value.trim();
   if (val) { processInput(val); inp.value = ''; }
+});
+
+document.getElementById('test-voice-btn').addEventListener('click', () => {
+  unlockVoice();
+  const testLine = 'سلام فرمانده. صدای کیو فعال و پایدار است.';
+  document.getElementById('response-text').textContent = testLine;
+  speakOut(testLine, 'idle');
 });
 
 document.getElementById('text-input').addEventListener('keydown', (e) => {
@@ -704,6 +796,7 @@ document.getElementById('memory-btn').addEventListener('click', () => {
 // ── BOOT ──────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   Memory.init();   // Load localStorage memory first
+  initVoices();
   initThree();
   initMic();
 
@@ -715,7 +808,6 @@ window.addEventListener('load', () => {
 
   setTimeout(() => {
     document.getElementById('response-text').textContent = greet;
-    speakOut(greet, 'idle');
   }, 1200);
 });
 </script>
