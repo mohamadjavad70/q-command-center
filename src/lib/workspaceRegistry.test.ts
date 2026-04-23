@@ -1,4 +1,4 @@
-تimport { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { getWorkspaceSummary, workspaceProjects } from "@/lib/workspaceRegistry";
 
 describe("workspaceRegistry", () => {

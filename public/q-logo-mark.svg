@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="beanWhite" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(157 178) rotate(54.6) scale(220 195)">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.72" stop-color="#F5F5F3"/>
+      <stop offset="1" stop-color="#E7E6E2"/>
+    </radialGradient>
+    <radialGradient id="pillGrad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(350 364) rotate(138) scale(92 36)">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.52" stop-color="#F2F2F2"/>
+      <stop offset="1" stop-color="#B8B8B8"/>
+    </radialGradient>
+    <filter id="softGlow" x="242" y="234" width="210" height="212" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+    <filter id="innerBlur" x="130" y="120" width="120" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+
+  <path d="M204.173 86C126.978 86 68 148.36 68 252.554C68 363.87 135.942 432 220.162 432H308C259.428 399.997 232.989 352.488 232.989 300.523C232.989 247.169 256.363 209.831 297.734 181.692C329.646 159.716 349.494 129.734 349.494 97.493C349.494 66.8319 324.483 46 286.412 46C252.478 46 232.11 86 204.173 86Z" fill="url(#beanWhite)"/>
+
+  <path d="M236 52C327.736 62.4051 444 134.118 444 292.5C444 389.937 392.396 451.258 320.5 480C355.664 447.069 376.5 398.676 376.5 337.5C376.5 230.112 319.757 142.3 236 52Z" fill="#050505" stroke="#111111" stroke-width="1.5"/>
+
+  <g filter="url(#innerBlur)">
+    <ellipse cx="190" cy="180" rx="25" ry="24" fill="#9D9D9D" fill-opacity="0.35"/>
+  </g>
+
+  <g filter="url(#softGlow)">
+    <rect x="308" y="286" width="96" height="34" rx="17" transform="rotate(46 308 286)" fill="#FFFFFF" fill-opacity="0.58"/>
+  </g>
+
+  <rect x="314" y="292" width="90" height="30" rx="15" transform="rotate(46 314 292)" fill="url(#pillGrad)"/>
+  <rect x="329" y="297" width="12" height="72" rx="6" transform="rotate(46 329 297)" fill="#8E8E8E" fill-opacity="0.35"/>
+</svg>

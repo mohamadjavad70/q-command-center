@@ -46,6 +46,7 @@ export class StreamVoiceEngine {
 
   private listeners: Map<string, Function[]> = new Map();
   private commandQueue: string[] = [];
+  private shouldAutoRestart = true;
 
   constructor(config?: VoiceEngineConfig) {
     this.detector = wakeWordDetector;
@@ -152,8 +153,8 @@ export class StreamVoiceEngine {
         status: "stopped",
       });
 
-      // بازراه‌اندازی اگر نباید متوقف شود
-      if (this.config.continuous) {
+      // فقط زمانی auto-restart کن که stop دستی درخواست نشده باشد
+      if (this.config.continuous && this.shouldAutoRestart) {
         this.start();
       }
     };
@@ -170,6 +171,8 @@ export class StreamVoiceEngine {
 
     if (this.state.isListening) return;
 
+    this.shouldAutoRestart = true;
+
     try {
       this.recognition.start();
       this.state.errorCount = 0;
@@ -182,6 +185,7 @@ export class StreamVoiceEngine {
    * توقف شنوایی
    */
   stop(): void {
+    this.shouldAutoRestart = false;
     if (this.recognition && this.state.isListening) {
       this.recognition.stop();
       this.detector.reset();
@@ -306,10 +310,16 @@ export class StreamVoiceEngine {
    */
   private async streamSpeak(text: string): Promise<void> {
     const synth = window.speechSynthesis;
-    if (!synth) return;
+    if (!synth || !text.trim()) return;
+
+    // در برخی مرورگرها بعد از تعامل با میکروفن، synth در حالت paused می‌ماند.
+    try { synth.resume(); } catch {}
+
+    const voices = synth.getVoices();
+    const matchingVoice = voices.find(v => v.lang.toLowerCase().startsWith(this.config.language.toLowerCase().slice(0, 2)));
 
     // تقسیم متن به بخش‌های کوتاه برای تاخیر کمتر
-    const chunks = this.splitIntoChunks(text, 20);
+    const chunks = this.splitIntoChunks(text, 20).filter(Boolean);
 
     return new Promise((resolve) => {
       let index = 0;
@@ -327,13 +337,19 @@ export class StreamVoiceEngine {
         utterance.rate = 1;
         utterance.pitch = 1;
         utterance.volume = 1;
+        if (matchingVoice) utterance.voice = matchingVoice;
 
         utterance.onend = () => {
           index++;
           speakNext();
         };
 
-        utterance.onerror = () => {
+        utterance.onerror = (event) => {
+          this.emit("error", {
+            stage: "tts",
+            error: event.error,
+            chunk,
+          });
           index++;
           speakNext();
         };

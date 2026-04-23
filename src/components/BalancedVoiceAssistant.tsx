@@ -243,14 +243,14 @@ const BalancedVoiceAssistant: React.FC<BalancedVoiceAssistantProps> = ({
         <div className="mb-6 p-4 bg-blue-900/30 rounded-xl">
           <div className="flex items-center gap-2 mb-3">
             <User size={18} className="text-blue-400" />
-            <h3 className="text-white font-medium">چطور صدایت کنم؟</h3>
+            <h3 className="text-white font-medium">Wie soll ich Sie nennen?</h3>
           </div>
           <div className="flex gap-2">
             <input
               type="text"
               value={tempName}
               onChange={(e) => setTempName(e.target.value)}
-              placeholder="اسم شما..."
+              placeholder="Ihr Name..."
               className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               onKeyDown={(e) => e.key === 'Enter' && saveUserName()}
             />
@@ -258,7 +258,7 @@ const BalancedVoiceAssistant: React.FC<BalancedVoiceAssistantProps> = ({
               onClick={saveUserName}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition-colors"
             >
-              ثبت
+              OK
             </button>
           </div>
         </div>
@@ -269,7 +269,7 @@ const BalancedVoiceAssistant: React.FC<BalancedVoiceAssistantProps> = ({
             <span className="text-sm text-gray-300">{savedName}</span>
           </div>
           <button onClick={() => setShowNameInput(true)} className="text-xs text-blue-400 hover:text-blue-300">
-            تغییر
+            Ändern
           </button>
         </div>
       )}

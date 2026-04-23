@@ -5,11 +5,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Mic, MicOff, Mail, Calendar, CheckCircle, Clock, Shield,
-  Sparkles, Play, Zap, X, ChevronRight, Lock, Globe,
+  Mail, Calendar, CheckCircle, Clock, Shield,
+  Sparkles, Play, Zap, X, ChevronRight, Lock, Globe, Power,
 } from 'lucide-react';
-import BalancedVoiceAssistant from '../components/BalancedVoiceAssistant';
-import SwissVoiceAssistant from '../components/SwissVoiceAssistant';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -30,6 +28,24 @@ interface Task {
 }
 
 type ResponseMode = 'silent' | 'minimal' | 'humanized';
+type VoiceEngine = 'realtime' | 'pipeline';
+type RealtimeStatus = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'failed';
+
+type RealtimeSessionPayload = {
+  client_secret?: { value?: string };
+  endpoint?: string;
+};
+
+function isAuthErrorReason(reason: string): boolean {
+  return /\b401\b|invalid_api_key|incorrect api key|unauthorized|authentication/i.test(reason);
+}
+
+const Q_REALTIME_INSTRUCTIONS = [
+  'You are Q Swiss Voice.',
+  'Speak short, precise, and calm.',
+  'Use German by default unless the user clearly switches language.',
+  'Allow barge-in and keep responses natural.',
+].join(' ');
 
 // ─── Response Policy (Swiss Minimal Voice Personality) ───────────────────────
 // 50% silent execution | 40% minimal response | 10% humanized
@@ -97,6 +113,11 @@ const COMMANDS = [
 const QSwissVoiceAgent: React.FC = () => {
   const [phase, setPhase]           = useState<'gate' | 'auth' | 'voice'>('gate');
   const [isListening, setIsListening] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+  const [supportsSpeechRecognition, setSupportsSpeechRecognition] = useState(true);
+  const [isFallbackRecording, setIsFallbackRecording] = useState(false);
+  const [voiceEngine, setVoiceEngine] = useState<VoiceEngine>('pipeline');
+  const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('idle');
   const [transcript, setTranscript] = useState('');
   const [voiceLog, setVoiceLog]     = useState<{ text: string; ts: string }[]>([]);
   const [emails, setEmails]         = useState<Email[]>(MOCK_EMAILS);
@@ -107,6 +128,21 @@ const QSwissVoiceAgent: React.FC = () => {
   const [waveActive, setWaveActive] = useState(false);
 
   const recognRef = useRef<SpeechRecognition | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
+  const realtimePcRef = useRef<RTCPeerConnection | null>(null);
+  const realtimeDataChannelRef = useRef<RTCDataChannel | null>(null);
+  const realtimeLocalStreamRef = useRef<MediaStream | null>(null);
+  const realtimeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const engineRef = useRef<VoiceEngine>('pipeline');
+  const isVoiceEnabledRef = useRef(false);
+  const realtimeRetryCountRef = useRef(0);
+  const realtimeReconnectTimerRef = useRef<number | null>(null);
+  const realtimeHeartbeatRef = useRef<number | null>(null);
+  const realtimeRefreshTimerRef = useRef<number | null>(null);
+  const realtimeManualStopRef = useRef(false);
 
   // Q logo pulse every 4s when idle
   useEffect(() => {
@@ -114,10 +150,23 @@ const QSwissVoiceAgent: React.FC = () => {
     return () => clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    engineRef.current = voiceEngine;
+  }, [voiceEngine]);
+
+  useEffect(() => {
+    isVoiceEnabledRef.current = isVoiceEnabled;
+  }, [isVoiceEnabled]);
+
   // ── Speech Recognition setup ──
   useEffect(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
+    if (!SR) {
+      setSupportsSpeechRecognition(false);
+      return;
+    }
+
+    setSupportsSpeechRecognition(true);
 
     const recog: SpeechRecognition = new SR();
     recog.continuous = true;
@@ -134,24 +183,445 @@ const QSwissVoiceAgent: React.FC = () => {
       setTranscript(final || interim);
       if (final) handleVoiceCommand(final);
     };
-    recog.onend = () => setIsListening(false);
+
+    recog.onerror = () => {
+      setIsListening(false);
+      if (isVoiceEnabled && engineRef.current === 'pipeline') addLog('⚠ Speech recognition temporary error');
+    };
+
+    recog.onend = () => {
+      setIsListening(false);
+      if (isVoiceEnabled && supportsSpeechRecognition && engineRef.current === 'pipeline') {
+        setTimeout(() => {
+          try { recog.start(); setIsListening(true); } catch {}
+        }, 220);
+      }
+    };
+
     recognRef.current = recog;
-  }, [emails, tasks]);
+    return () => {
+      try { recog.stop(); } catch {}
+    };
+  }, [isVoiceEnabled, supportsSpeechRecognition, emails, tasks]);
 
   // ── TTS ──
-  const speak = useCallback((text: string) => {
-    if (!text || !window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'de-CH';
-    u.rate = 1.1;
-    window.speechSynthesis.speak(u);
+  const speak = useCallback(async (text: string) => {
+    if (!text) return;
+    const urls = ['http://127.0.0.1:3001/api/tts', 'http://localhost:3001/api/tts', '/api/tts'];
+    let ok = false;
+    for (const url of urls) {
+      try {
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, voice: 'alloy', speed: 1.0 }),
+        });
+        if (!r.ok) continue;
+        const blob = await r.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const audio = new Audio(objectUrl);
+        ttsAudioRef.current = audio;
+        await new Promise<void>((resolve) => {
+          audio.onended = () => { URL.revokeObjectURL(objectUrl); resolve(); };
+          audio.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(); };
+          audio.play().catch(() => { URL.revokeObjectURL(objectUrl); resolve(); });
+        });
+        ok = true;
+        break;
+      } catch {
+        // try next endpoint
+      }
+    }
+    ttsAudioRef.current = null;
+    if (!ok) addLog('🔇 TTS endpoint failed');
   }, []);
 
   // ── Log helper ──
-  const addLog = (text: string) => {
+  const addLog = useCallback((text: string) => {
     const ts = new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setVoiceLog(p => [{ text, ts }, ...p].slice(0, 8));
-  };
+  }, []);
+
+  const apiPost = useCallback(async (path: string, body: Record<string, unknown>) => {
+    const _base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+    const urls = [`${_base}${path}`, `http://127.0.0.1:3001${path}`, `http://localhost:3001${path}`];
+    let lastError: unknown = new Error('No endpoint reachable');
+    for (const url of urls) {
+      try {
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status} @ ${url}`);
+        return r;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  }, []);
+
+  const uploadAndTranscribe = useCallback(async (blob: Blob) => {
+    const ab = await blob.arrayBuffer();
+    const bytes = new Uint8Array(ab);
+    let bin = '';
+    bytes.forEach((b) => { bin += String.fromCharCode(b); });
+    const audioBase64 = btoa(bin);
+
+    const res = await apiPost('/api/transcribe', {
+      audioBase64,
+      mimeType: blob.type || 'audio/webm',
+      language: 'de',
+    });
+
+    const data = await res.json();
+    return String(data.text || '').trim();
+  }, [apiPost]);
+
+  const startFallbackRecording = useCallback(async () => {
+    if (isFallbackRecording) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        setIsFallbackRecording(false);
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        chunksRef.current = [];
+
+        stream.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+
+        if (blob.size < 600) {
+          if (isVoiceEnabled) addLog('⚠ Audio war zu kurz');
+          return;
+        }
+
+        setIsProcessing(true);
+        setWaveActive(true);
+        try {
+          const text = await uploadAndTranscribe(blob);
+          if (text) {
+            setTranscript(text);
+            await handleVoiceCommand(text);
+          } else {
+            addLog('⚠ Keine Sprache erkannt');
+          }
+        } catch {
+          addLog('⚠ STT Verbindung fehlgeschlagen');
+        } finally {
+          setIsProcessing(false);
+          setWaveActive(false);
+        }
+      };
+
+      recorder.start();
+      setIsFallbackRecording(true);
+      addLog('🎙 Aufnahme gestartet');
+    } catch {
+      addLog('⚠ Mikrofonzugriff verweigert');
+    }
+  }, [isFallbackRecording, isVoiceEnabled, uploadAndTranscribe]);
+
+  const stopFallbackRecording = useCallback(() => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return;
+    mediaRecorderRef.current.stop();
+    addLog('⏹ Aufnahme gestoppt');
+  }, []);
+
+  const clearRealtimeTimers = useCallback(() => {
+    if (realtimeReconnectTimerRef.current) {
+      window.clearTimeout(realtimeReconnectTimerRef.current);
+      realtimeReconnectTimerRef.current = null;
+    }
+    if (realtimeHeartbeatRef.current) {
+      window.clearInterval(realtimeHeartbeatRef.current);
+      realtimeHeartbeatRef.current = null;
+    }
+    if (realtimeRefreshTimerRef.current) {
+      window.clearTimeout(realtimeRefreshTimerRef.current);
+      realtimeRefreshTimerRef.current = null;
+    }
+  }, []);
+
+  const stopPipelineVoice = useCallback(() => {
+    try { recognRef.current?.stop(); } catch {}
+    setIsListening(false);
+    if (isFallbackRecording) stopFallbackRecording();
+    if (ttsAudioRef.current) {
+      ttsAudioRef.current.pause();
+      ttsAudioRef.current = null;
+    }
+  }, [isFallbackRecording, stopFallbackRecording]);
+
+  const stopRealtimeSession = useCallback((nextStatus: RealtimeStatus = 'idle') => {
+    clearRealtimeTimers();
+    setRealtimeStatus(nextStatus);
+    setWaveActive(false);
+
+    try { realtimeDataChannelRef.current?.close(); } catch {}
+    realtimeDataChannelRef.current = null;
+
+    if (realtimePcRef.current) {
+      try {
+        realtimePcRef.current.getSenders().forEach((sender) => sender.track?.stop());
+        realtimePcRef.current.close();
+      } catch {}
+      realtimePcRef.current = null;
+    }
+
+    if (realtimeLocalStreamRef.current) {
+      realtimeLocalStreamRef.current.getTracks().forEach((track) => track.stop());
+      realtimeLocalStreamRef.current = null;
+    }
+
+    if (realtimeAudioRef.current) {
+      realtimeAudioRef.current.pause();
+      realtimeAudioRef.current.srcObject = null;
+      realtimeAudioRef.current = null;
+    }
+  }, [clearRealtimeTimers]);
+
+  const fetchRealtimeSession = useCallback(async () => {
+    const tokenEndpoints = [
+      'http://127.0.0.1:3001/api/realtime/session',
+      'http://localhost:3001/api/realtime/session',
+      '/api/realtime/session',
+    ];
+
+    let lastError: Error | null = null;
+    for (const url of tokenEndpoints) {
+      try {
+        const response = await fetch(url);
+        const data = await response.json().catch(() => ({})) as RealtimeSessionPayload & { error?: { message?: string } | string };
+        if (!response.ok) {
+          const message = typeof data?.error === 'string'
+            ? data.error
+            : data?.error?.message || `Realtime session failed (${response.status})`;
+          throw new Error(message);
+        }
+        if (!data?.client_secret?.value || !data?.endpoint) {
+          throw new Error('Realtime session incomplete');
+        }
+        return {
+          session: data,
+          endpointUsed: url,
+        };
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
+    throw lastError ?? new Error('Realtime session unavailable');
+  }, []);
+
+  const scheduleRealtimeRefresh = useCallback(() => {
+    if (realtimeRefreshTimerRef.current) {
+      window.clearTimeout(realtimeRefreshTimerRef.current);
+    }
+    realtimeRefreshTimerRef.current = window.setTimeout(() => {
+      if (!isVoiceEnabledRef.current || engineRef.current !== 'realtime') return;
+      addLog('♻ Realtime Session wird erneuert');
+      realtimeManualStopRef.current = false;
+      void startRealtimeSession(true);
+    }, 4 * 60 * 1000);
+  }, [addLog]);
+
+  const scheduleReconnect = useCallback((reason: string) => {
+    if (!isVoiceEnabledRef.current || realtimeManualStopRef.current) return;
+    if (realtimeReconnectTimerRef.current) return;
+
+    if (isAuthErrorReason(reason)) {
+      stopRealtimeSession('failed');
+      setVoiceEngine('pipeline');
+      addLog('🔐 OpenAI Auth fehlgeschlagen · Pipeline-Fallback aktiv');
+      if (supportsSpeechRecognition && recognRef.current) {
+        try { recognRef.current.start(); setIsListening(true); } catch {}
+      }
+      return;
+    }
+
+    const nextRetry = realtimeRetryCountRef.current + 1;
+    if (nextRetry > 5) {
+      stopRealtimeSession('failed');
+      addLog(`⛔ Realtime dauerhaft fehlgeschlagen: ${reason}`);
+      setVoiceEngine('pipeline');
+      if (supportsSpeechRecognition && recognRef.current) {
+        try { recognRef.current.start(); setIsListening(true); } catch {}
+      }
+      return;
+    }
+
+    realtimeRetryCountRef.current = nextRetry;
+    const delay = Math.min(4000, 500 * nextRetry);
+    setRealtimeStatus('reconnecting');
+    addLog(`🔁 Reconnect ${nextRetry}/5 in ${delay}ms`);
+    realtimeReconnectTimerRef.current = window.setTimeout(() => {
+      realtimeReconnectTimerRef.current = null;
+      realtimeManualStopRef.current = false;
+      void startRealtimeSession(true);
+    }, delay);
+  }, [addLog, stopRealtimeSession, supportsSpeechRecognition]);
+
+  const startRealtimeSession = useCallback(async (isRecovery = false) => {
+    if (typeof window === 'undefined' || typeof window.RTCPeerConnection === 'undefined') {
+      throw new Error('WebRTC unsupported');
+    }
+
+    setVoiceEngine('realtime');
+    setRealtimeStatus(isRecovery ? 'reconnecting' : 'connecting');
+    setWaveActive(true);
+    if (!isRecovery) addLog('🧬 Realtime Voice verbindet…');
+    clearRealtimeTimers();
+    stopPipelineVoice();
+    stopRealtimeSession(isRecovery ? 'reconnecting' : 'connecting');
+
+    try {
+      const { session, endpointUsed } = await fetchRealtimeSession();
+      const ephemeralKey = session.client_secret?.value;
+      const realtimeEndpoint = session.endpoint;
+
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      });
+      const audio = new Audio();
+      audio.autoplay = true;
+      audio.playsInline = true;
+
+      realtimePcRef.current = pc;
+      realtimeAudioRef.current = audio;
+
+      pc.ontrack = (event) => {
+        const [remoteStream] = event.streams;
+        if (remoteStream) {
+          audio.srcObject = remoteStream;
+          audio.play().catch(() => {
+            document.addEventListener('click', () => {
+              audio.play().catch(() => undefined);
+            }, { once: true });
+          });
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'connected') {
+          setRealtimeStatus('connected');
+          realtimeRetryCountRef.current = 0;
+          addLog(`✅ Voice OS live via ${endpointUsed}`);
+          scheduleRealtimeRefresh();
+        } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+          scheduleReconnect(`state=${pc.connectionState}`);
+        } else if (pc.connectionState === 'closed' && !realtimeManualStopRef.current) {
+          scheduleReconnect('state=closed');
+        }
+      };
+
+      const dataChannel = pc.createDataChannel('oai-events');
+      realtimeDataChannelRef.current = dataChannel;
+      dataChannel.onopen = () => {
+        addLog('🧠 Q Identity geladen');
+        dataChannel.send(JSON.stringify({
+          type: 'session.update',
+          session: {
+            instructions: Q_REALTIME_INSTRUCTIONS,
+            turn_detection: { type: 'server_vad' },
+          },
+        }));
+      };
+      dataChannel.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'input_audio_buffer.speech_started') {
+            addLog('🎙 Nutzer spricht');
+          }
+          if (data.type === 'response.done') {
+            setIsProcessing(false);
+          }
+          if (data.type === 'response.created') {
+            setIsProcessing(true);
+          }
+          if (data.type === 'error') {
+            addLog(`⚠ ${data.error?.message ?? 'Realtime Fehler'}`);
+            scheduleReconnect(data.error?.message ?? 'realtime_error');
+          }
+        } catch {
+          // ignore non-json frames
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+      realtimeLocalStreamRef.current = stream;
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const sdpResponse = await fetch(realtimeEndpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${ephemeralKey}`,
+          'Content-Type': 'application/sdp',
+        },
+        body: offer.sdp ?? '',
+      });
+
+      const answerSdp = await sdpResponse.text();
+      if (!sdpResponse.ok) {
+        throw new Error(answerSdp || `Realtime SDP failed (${sdpResponse.status})`);
+      }
+
+      await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+
+      if (realtimeHeartbeatRef.current) {
+        window.clearInterval(realtimeHeartbeatRef.current);
+      }
+      realtimeHeartbeatRef.current = window.setInterval(() => {
+        const state = realtimePcRef.current?.connectionState;
+        if (!isVoiceEnabledRef.current || engineRef.current !== 'realtime') return;
+        if (state === 'failed' || state === 'disconnected' || state === 'closed') {
+          scheduleReconnect(`heartbeat:${state}`);
+        }
+      }, 3000);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'realtime_start_failed';
+      if (isAuthErrorReason(reason)) {
+        stopRealtimeSession('failed');
+        setVoiceEngine('pipeline');
+        addLog('🔐 OpenAI Auth fehlgeschlagen · Realtime deaktiviert');
+        if (supportsSpeechRecognition && recognRef.current) {
+          try { recognRef.current.start(); setIsListening(true); } catch {}
+        }
+      } else {
+        stopRealtimeSession('reconnecting');
+        if (isVoiceEnabledRef.current) {
+          scheduleReconnect(reason);
+        } else {
+          setVoiceEngine('pipeline');
+          setRealtimeStatus('failed');
+        }
+      }
+      throw error;
+    }
+  }, [addLog, clearRealtimeTimers, fetchRealtimeSession, scheduleReconnect, scheduleRealtimeRefresh, stopPipelineVoice, stopRealtimeSession, supportsSpeechRecognition]);
+
+  useEffect(() => () => {
+    realtimeManualStopRef.current = true;
+    stopRealtimeSession('idle');
+  }, [stopRealtimeSession]);
 
   // ── Voice Command Processor ──
   const handleVoiceCommand = useCallback(async (cmd: string) => {
@@ -204,17 +674,23 @@ const QSwissVoiceAgent: React.FC = () => {
 
     if (saved > 0) setSavedMins(p => p + saved);
 
-    const reply = getResponse(key, mode);
-    if (reply) {
-      addLog(`🔊 "${reply}"`);
-      speak(reply);
+    try {
+      const res = await apiPost('/api/chat', { message: cmd });
+      const data = await res.json();
+      if (data.text) {
+        addLog(`🤖 "${data.text.slice(0, 60)}${data.text.length > 60 ? '…' : ''}"`);
+        speak(data.text);
+      }
+    } catch {
+      const fallback = getResponse(key, mode);
+      if (fallback) { addLog(`🔊 "${fallback}"`); speak(fallback); }
     }
 
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 320));
     setIsProcessing(false);
     setWaveActive(false);
     setTranscript('');
-  }, [emails, tasks, savedMins, speak]);
+  }, [apiPost, emails, tasks, savedMins, speak]);
 
   // ── Demo command trigger ──
   const runDemo = (key: string) => {
@@ -228,10 +704,72 @@ const QSwissVoiceAgent: React.FC = () => {
     handleVoiceCommand(demos[key] ?? 'summary');
   };
 
-  const toggleListen = () => {
-    if (!recognRef.current) { alert('Speech API not supported in this browser.'); return; }
-    if (isListening) { recognRef.current.stop(); setIsListening(false); }
-    else             { recognRef.current.start(); setIsListening(true); }
+  const togglePower = async () => {
+    if (isVoiceEnabled) {
+      setIsVoiceEnabled(false);
+      realtimeManualStopRef.current = true;
+      stopRealtimeSession();
+      stopPipelineVoice();
+      setVoiceEngine('pipeline');
+      setWaveActive(false);
+      setIsProcessing(false);
+      addLog('⏹ Voice deaktiviert');
+      return;
+    }
+
+    setIsVoiceEnabled(true);
+    realtimeManualStopRef.current = false;
+    addLog('⚡ Voice aktiviert');
+    try {
+      await startRealtimeSession();
+    } catch {
+      setVoiceEngine('pipeline');
+      setRealtimeStatus('failed');
+      addLog('↩ Pipeline-Fallback aktiv');
+      if (supportsSpeechRecognition && recognRef.current) {
+        try { recognRef.current.start(); setIsListening(true); } catch {}
+      }
+    }
+  };
+
+  const toggleListen = async () => {
+    if (!isVoiceEnabled) {
+      await togglePower();
+      return;
+    }
+
+    if (voiceEngine === 'realtime') {
+      if (realtimeStatus === 'connected') {
+        addLog('🧬 Live-Session aktiv');
+        return;
+      }
+      if (realtimeStatus !== 'connecting') {
+        try {
+          realtimeManualStopRef.current = false;
+          await startRealtimeSession();
+        } catch {
+          addLog('⚠ Realtime Start fehlgeschlagen');
+        }
+      }
+      return;
+    }
+
+    if (supportsSpeechRecognition) {
+      if (isListening) {
+        try { recognRef.current?.stop(); } catch {}
+        setIsListening(false);
+      } else {
+        try { recognRef.current?.start(); setIsListening(true); } catch {}
+      }
+      return;
+    }
+
+    if (isFallbackRecording) {
+      stopFallbackRecording();
+      return;
+    }
+
+    await startFallbackRecording();
   };
 
   const timeSavedLabel = savedMins >= 60
@@ -335,6 +873,15 @@ const QSwissVoiceAgent: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#050505', fontFamily: "'Inter', system-ui" }}>
 
+      {/* Swiss flag — minimal top bar */}
+      <div className="flex justify-center pt-3 pb-0.5">
+        <svg width="18" height="18" viewBox="0 0 20 20" aria-label="Swiss flag" style={{ display: 'block' }}>
+          <rect width="20" height="20" rx="2" fill="#D52B1E"/>
+          <rect x="8.5" y="3" width="3" height="14" fill="white"/>
+          <rect x="3" y="8.5" width="14" height="3" fill="white"/>
+        </svg>
+      </div>
+
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3">
@@ -347,16 +894,29 @@ const QSwissVoiceAgent: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <a
+            href="/swiss-characters"
+            className="rounded-full border border-cyan-400/40 px-2.5 py-1 text-[9px] font-semibold text-cyan-200 hover:bg-cyan-500/10"
+          >
+            Characters
+          </a>
           {savedMins > 0 && (
             <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold"
               style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>
               <Zap size={9} /> {timeSavedLabel} gespart
             </div>
           )}
-          <div className="flex items-center gap-1 text-[9px] text-white/25">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Online
-          </div>
+          <button
+            onClick={togglePower}
+            className="flex items-center gap-1 rounded-full border px-2.5 py-1 text-[9px] font-semibold"
+            style={{
+              borderColor: isVoiceEnabled ? 'rgba(16,185,129,0.45)' : 'rgba(255,255,255,0.2)',
+              color: isVoiceEnabled ? '#34d399' : 'rgba(255,255,255,0.5)',
+              background: 'rgba(0,0,0,0.3)',
+            }}
+          >
+            <Power size={9} /> {isVoiceEnabled ? 'ON' : 'OFF'}
+          </button>
         </div>
       </header>
 
@@ -381,15 +941,31 @@ const QSwissVoiceAgent: React.FC = () => {
                 ? '0 0 40px rgba(239,68,68,0.4), inset 0 1px 0 rgba(255,100,100,0.2)'
                 : '0 0 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
             }}>
-            {isListening
-              ? <MicOff size={28} className="text-white" />
-              : <Mic    size={28} className="text-white/70" />
-            }
+            <span
+              className="text-white font-black select-none"
+              style={{
+                fontSize: 40,
+                letterSpacing: -2,
+                lineHeight: 1,
+                opacity: isListening ? 1 : 0.75,
+                textShadow: isListening ? '0 0 20px rgba(255,120,120,0.6)' : '0 0 16px rgba(255,255,255,0.4)',
+              }}
+            >Q</span>
           </button>
         </div>
 
         <p className="text-white/30 text-xs mt-4 tracking-wider">
-          {isListening ? '🔴 Hört zu…' : 'Tippen zum Aktivieren'}
+          {voiceEngine === 'realtime'
+            ? (realtimeStatus === 'connecting'
+              ? '🧬 Q Voice OS verbindet…'
+              : realtimeStatus === 'reconnecting'
+                ? '🟡 Reconnect läuft…'
+              : realtimeStatus === 'connected'
+                ? '🟢 Live Voice OS aktiv'
+                : '⚠ Realtime nicht verbunden')
+            : supportsSpeechRecognition
+            ? (isListening ? '🔴 Hört zu…' : (isVoiceEnabled ? 'Bereit zum Zuhören' : 'Tippen zum Aktivieren'))
+            : (isFallbackRecording ? '🔴 Aufnahme läuft… tippen zum Stoppen' : (isVoiceEnabled ? 'Tippen zum Aufnehmen' : 'Voice einschalten'))}
         </p>
 
         {/* Transcript */}
@@ -448,28 +1024,16 @@ const QSwissVoiceAgent: React.FC = () => {
         </div>
       </div>
 
-      {/* Balanced Voice Assistant — متعادل و هوشمند */}
+      {/* Single reliable voice path only */}
       <div className="px-5 mb-4">
-        <p className="text-white/20 text-[10px] tracking-widest uppercase mb-2">KI-Assistent (Balanced)</p>
-        <BalancedVoiceAssistant
-          language="de-CH"
-          onCommand={async (cmd) => {
-            await handleVoiceCommand(cmd);
-            return 'Erledigt';
-          }}
-        />
-      </div>
-
-      {/* Swiss Voice Assistant — Phase 3 (Swiss phrases + biometric auth) */}
-      <div className="px-5 mb-4">
-        <p className="text-white/20 text-[10px] tracking-widest uppercase mb-2">Swiss Voice (Phase 3)</p>
-        <SwissVoiceAssistant
-          language="de-CH"
-          onCommand={async (cmd, level) => {
-            await handleVoiceCommand(cmd);
-            return level === 'high' ? 'Bestätigt & ausgeführt ✅' : 'Erledigt ✅';
-          }}
-        />
+        <p className="text-white/20 text-[10px] tracking-widest uppercase mb-2">Voice Engine</p>
+        <div className="rounded-xl px-3 py-2 text-[10px] text-white/45" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          {voiceEngine === 'realtime'
+            ? `Realtime WebRTC · ${realtimeStatus.toUpperCase()} · OpenAI Live Session`
+            : supportsSpeechRecognition
+              ? 'Pipeline Fallback: Browser STT · /api/chat · /api/tts'
+              : 'Fallback aktiv: Aufnahme -> /api/transcribe -> /api/chat -> TTS'}
+        </div>
       </div>
 
       {/* Stats Footer */}

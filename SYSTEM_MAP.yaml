@@ -1,0 +1,41 @@
+# SYSTEM_MAP.yaml
+
+kernel:
+  authority: reasoning
+  owner: Q-BRAIN
+
+voice:
+  authority: speech
+  owner: Q.VOICE
+
+security:
+  authority: policy
+  owner: guardian
+
+network:
+  authority: communication
+  owner: Q.NETWORK.Q3
+
+dashboard:
+  authority: control
+  owner: q-command-center-local
+
+ai:
+  authority: ai-pipeline
+  owner: SAMIR.AI
+
+observability:
+  authority: monitoring
+  owner: مرکز فرماندهی کیو
+
+archive:
+  authority: data-archive
+  owner: asnad va ketabkhaneh
+
+video:
+  authority: video-processing
+  owner: Q.VIDEO
+
+plugin:
+  authority: extension
+  owner: jarvis-ai-assistant-main

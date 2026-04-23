@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
 import { navigationMap, getNavigationStats } from "@/lib/NavigationMap";
 import { getWorkspaceSummary, workspaceProjects } from "@/lib/workspaceRegistry";
@@ -6,6 +7,12 @@ import {
   ArrowRight, Sparkles, Globe
 } from "lucide-react";
 import SovereignEye from "@/components/SovereignEye";
+import BinaryRain from "@/components/BinaryRain";
+import CountdownTimer from "@/components/CountdownTimer";
+import MissionCards from "@/components/MissionCards";
+import FAQAccordion from "@/components/FAQAccordion";
+
+const Globe3D = lazy(() => import("@/components/Globe3D"));
 
 const Index = () => {
   const stats = getNavigationStats();
@@ -62,6 +69,9 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* ── HERO ── */}
         <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 md:p-12">
+          <div className="absolute inset-0 opacity-40">
+            <BinaryRain height={260} opacity={0.12} />
+          </div>
           <div
             className="absolute inset-0 opacity-[0.03]"
             style={{ background: "radial-gradient(ellipse at 20% 50%, hsl(var(--neon-gold)), transparent 60%)" }}
@@ -81,6 +91,34 @@ const Index = () => {
               </p>
             </div>
             <SovereignEye progress={stats.readinessPercent} />
+          </div>
+        </section>
+
+        {/* ── MISSION OPS STRIP ── */}
+        <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="xl:col-span-1">
+            <CountdownTimer />
+          </div>
+          <div className="xl:col-span-2">
+            <MissionCards />
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold tracking-wide">Global Command Sphere</h3>
+              <span className="text-[10px] text-muted-foreground">Lazy 3D renderer</span>
+            </div>
+            <Suspense fallback={<div className="h-[260px] rounded-xl border border-border bg-background animate-pulse" />}>
+              <Globe3D />
+            </Suspense>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <h3 className="text-sm font-bold tracking-wide">Placement Note</h3>
+            <p className="text-[12px] text-muted-foreground mt-2 leading-6">
+              This module is positioned near mission controls to visualize real-time global context without blocking first paint.
+            </p>
           </div>
         </section>
 
@@ -223,6 +261,7 @@ const Index = () => {
             { label: "آنالیز حاکمیتی", sub: "مانیتورینگ تمام صفحات و ماژول‌ها", to: "/q-analytics", icon: BarChart3 },
             { label: "پنل اجرایی سام آرمان", sub: "دسترسی کامل به تمام ماژول‌ها", to: "/sam-arman", icon: Shield },
             { label: "Q Galaxy", sub: "ورود به لایه کشف هدایت‌شده کهکشان", to: "/galaxy", icon: Sparkles },
+            { label: "Q Media Lab", sub: "ادغام صوت، ویدیو و گفت‌وگوی آنلاین", to: "/media-lab", icon: Activity },
           ].map((link) => (
             <Link
               key={link.to}
@@ -243,6 +282,8 @@ const Index = () => {
             </Link>
           ))}
         </section>
+
+        <FAQAccordion />
 
         {/* ── FOOTER ── */}
         <footer className="text-center py-8 text-[10px] text-muted-foreground space-y-1">
